@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
-import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.entity.util.Box2dConstants;
 import com.jabyftw.gameclient.entity.util.MapViewer;
 import com.jabyftw.gameclient.maps.util.BlockOpacity;
@@ -32,8 +31,7 @@ public class Block implements Tickable, Mappable {
         this.map = map;
         World world = map.getWorld();
 
-        bodyDef.position.set(x, y);
-        bodyDef.position.scl(Map.BOX2D_TILE_SCALE_WIDTH, Map.BOX2D_TILE_SCALE_HEIGHT);
+        bodyDef.position.set(Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(x, y)));
         box2dBody = world.createBody(bodyDef);
         box2dBody.createFixture(fixtureDef);
 
@@ -52,11 +50,11 @@ public class Block implements Tickable, Mappable {
         {
             batch.setColor(new Color(1, 1, 1, blockOpacity.getOpacity()));
 
-            Vector2 box2dPosition = box2dBody.getPosition().scl(Main.PIXELS_PER_METER);
+            Vector2 drawPosition = Converter.BOX2D_COORDINATES.toScreenCoordinates(box2dBody.getPosition());
             batch.draw(
                     materialAnimation.getCurrentFrame(),
-                    box2dPosition.x,
-                    box2dPosition.y,
+                    drawPosition.x,
+                    drawPosition.y,
                     0,
                     0,
                     Map.TILE_WIDTH,

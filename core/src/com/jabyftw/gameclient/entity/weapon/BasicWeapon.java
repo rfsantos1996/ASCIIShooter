@@ -117,6 +117,18 @@ public class BasicWeapon implements WeaponController {
                     (font.getSpaceWidth() / 2f) + (firstString.length() * font.getSpaceWidth()),
                     (2 * font.getLineHeight() / 3f)
             );
+
+            /*if(Main.isDebugging) {
+                BitmapFont newFont = Resources.getBitmapFont(FontEnum.PRESS_START_14);
+                Util.drawText(
+                        newFont,
+                        batch,
+                        "stamina: " + Util.formatDecimal(((PlayerEntity) holder).stamina, 2) + "/" + PlayerEntity.MAXIMUM_STAMINA +
+                                " recover: " + Util.formatDecimal(((PlayerEntity) holder).lastRun, 2),
+                        (newFont.getSpaceWidth() / 2f),
+                        font.getLineHeight() + (2 * font.getLineHeight() / 3f)
+                );
+            }*/
         }
         // Back to box2dCamera
         batch.setProjectionMatrix(Main.getInstance().getGameCamera().combined);

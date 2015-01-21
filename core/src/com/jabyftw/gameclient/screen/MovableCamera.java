@@ -10,29 +10,26 @@ import com.jabyftw.gameclient.util.Util;
  */
 public class MovableCamera extends OrthographicCamera {
 
-    private float minX, maxX, minY, maxY;
+    private final Vector2 min = new Vector2(-1, -1),
+            max = new Vector2(-1, -1);
 
     public MovableCamera() {
-        this(-1, -1, -1, -1);
     }
 
-    public MovableCamera(float minX, float maxX, float minY, float maxY) {
+    public MovableCamera(float minX, float minY, float maxX, float maxY) {
         super();
-        setCameraBounds(minX, maxX, minY, maxY);
+        setCameraBounds(minX, minY, maxX, maxY);
     }
 
-    public void setCameraBounds(float minX, float maxX, float minY, float maxY) {
-        this.minX = minX;
-        this.maxX = maxX;
-        this.minY = minY;
-        this.maxY = maxY;
+    public void setCameraBounds(float minX, float minY, float maxX, float maxY) {
+        this.min.set(minX, minY);
+        this.max.set(maxX, maxY);
     }
 
-    public void setCameraBounds(Vector2 min, Vector2 max) {
-        this.minX = min.x;
-        this.minY = min.y;
-        this.maxX = max.x;
-        this.maxY = max.y;
+    public void setCameraBounds(Vector2 minScreenCoordinates, Vector2 maxScreenCoordinates) {
+        System.out.println("CameraBounds -> { min: " + minScreenCoordinates.toString() + " max: " + maxScreenCoordinates.toString() + " }");
+        this.min.set(minScreenCoordinates);
+        this.max.set(maxScreenCoordinates);
     }
 
     public void updatePosition(Vector2 vector2, boolean smooth) {
@@ -48,22 +45,19 @@ public class MovableCamera extends OrthographicCamera {
     }
 
     private void fixBounds() {
-        if(minX < 0 && maxX < 0 && minY < 0 && maxY < 0)
+        if(min.x < 0 && max.x < 0 && min.y < 0 && max.y < 0)
             return;
 
         float halfWidth = viewportWidth / 2f;
         float halfHeight = viewportHeight / 2f;
 
-        if(position.x < minX + halfWidth) position.x = minX + halfWidth;
-        if(position.x > maxX - halfWidth) position.x = maxX - halfWidth;
-        if(position.y < minY + halfHeight) position.y = minY + halfHeight;
-        if(position.y > maxY - halfHeight) position.y = maxY - halfHeight;
+        if(position.x < min.x + halfWidth) position.x = min.x + halfWidth;
+        if(position.x > max.x - halfWidth) position.x = max.x - halfWidth;
+        if(position.y < min.y + halfHeight) position.y = min.y + halfHeight;
+        if(position.y > max.y - halfHeight) position.y = max.y - halfHeight;
     }
 
     public Vector2[] getBounds() {
-        return new Vector2[]{
-                new Vector2(minX, minY),
-                new Vector2(maxX, maxY)
-        };
+        return new Vector2[]{min, max};
     }
 }

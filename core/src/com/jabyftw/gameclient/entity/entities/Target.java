@@ -68,7 +68,8 @@ public class Target extends AbstractDamageableEntity {
             // Prepare the image
             frame.setColor(getDamageFilterColor());
             frame.setOriginCenter();
-            frame.setScale(Map.BOX2D_TILE_SCALE_WIDTH / Main.PIXELS_PER_METER, Map.BOX2D_TILE_SCALE_HEIGHT / Main.PIXELS_PER_METER);
+            // TODO fix
+            //frame.setScale(Map.BOX2D_TILE_SCALE_WIDTH / Main.PIXELS_PER_METER, Map.BOX2D_TILE_SCALE_HEIGHT / Main.PIXELS_PER_METER);
             frame.setPosition(box2dBody.getPosition().x, box2dBody.getPosition().y);
         }
         batch.begin();

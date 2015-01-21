@@ -9,11 +9,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.jabyftw.gameclient.gamestates.StartMenu;
 import com.jabyftw.gameclient.gamestates.util.GameState;
 import com.jabyftw.gameclient.gamestates.util.GameStateManager;
+import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.network.util.PacketHandler;
 import com.jabyftw.gameclient.screen.MovableCamera;
 import com.jabyftw.gameclient.util.Tickable;
@@ -77,7 +79,7 @@ public class Main extends ApplicationAdapter implements Tickable {
         Resources.loadLanguage(offlineProfile.getSelectedLanguage());
         reloadMaps();
 
-        gameCamera = new MovableCamera(0, V_WIDTH, 0, V_HEIGHT);
+        gameCamera = new MovableCamera(0, 0, V_WIDTH, V_HEIGHT);
         gameCamera.setToOrtho(false, V_WIDTH, V_HEIGHT);
 
         hudCamera = new OrthographicCamera();
@@ -94,6 +96,8 @@ public class Main extends ApplicationAdapter implements Tickable {
 
         // Transform to last offlineProfile's screen
         Gdx.graphics.setDisplayMode(offlineProfile.getWidth(), offlineProfile.getHeight(), offlineProfile.isFullscreen());
+
+        testConverter();
     }
 
     @Override
@@ -203,6 +207,24 @@ public class Main extends ApplicationAdapter implements Tickable {
             total += deltaTime;
         }
         return total / (float) (size > 0 ? size : 1);
+    }
+
+    private void testConverter() {
+        Vector2 worldTest = new Vector2(1, 3),
+                screenTest = new Vector2(worldTest.x * Converter.TILE_SCALE_WIDTH, worldTest.y * Converter.TILE_SCALE_HEIGHT),
+                box2dTest = new Vector2(worldTest.x * Converter.BOX2D_TILE_SCALE_WIDTH, worldTest.y * Converter.BOX2D_TILE_SCALE_HEIGHT);
+        {
+            System.out.println("--- Testing converter ---");
+            System.out.println("World -> screen @ " + worldTest.toString() + " -> " + Converter.WORLD_COORDINATES.toScreenCoordinates(worldTest.cpy()).toString());
+            System.out.println("World -> box2d @ " + worldTest.toString() + " -> " + Converter.WORLD_COORDINATES.toBox2dCoordinates(worldTest.cpy()).toString());
+            System.out.println("-------------------------");
+            System.out.println("Screen -> world @ " + screenTest.toString() + " -> " + Converter.SCREEN_COORDINATES.toWorldCoordinates(screenTest.cpy()).toString());
+            System.out.println("Screen -> box2d @ " + screenTest.toString() + " -> " + Converter.SCREEN_COORDINATES.toBox2dCoordinates(screenTest.cpy()).toString());
+            System.out.println("-------------------------");
+            System.out.println("Box2d -> screen @ " + box2dTest.toString() + " -> " + Converter.BOX2D_COORDINATES.toScreenCoordinates(box2dTest.cpy()).toString());
+            System.out.println("Box2d -> world @ " + box2dTest.toString() + " -> " + Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dTest.cpy()).toString());
+            System.out.println("--- Converter tested ---");
+        }
     }
 
     public static Main getInstance() {

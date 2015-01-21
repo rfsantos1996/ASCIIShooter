@@ -5,8 +5,9 @@ import box2dLight.RayHandler;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.jabyftw.gameclient.maps.Map;
+import com.jabyftw.gameclient.maps.Converter;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -90,7 +91,7 @@ public abstract class Util {
     }
 
     public static PointLight createPointLight(RayHandler rayHandler, int rays, Color color, float lightDistance) {
-        PointLight pointLight = new PointLight(rayHandler, rays, color, lightDistance * 1.4f * Map.BOX2D_TILE_SCALE_WIDTH, 0, 0);
+        PointLight pointLight = new PointLight(rayHandler, rays, color, Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(lightDistance * 1.4f, 0)).x, 0, 0);
         pointLight.setSoft(true);
         pointLight.setSoftnessLength(0.5f);
         return pointLight;

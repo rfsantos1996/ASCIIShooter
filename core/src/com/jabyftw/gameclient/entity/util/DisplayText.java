@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
 import com.jabyftw.gameclient.Main;
-import com.jabyftw.gameclient.maps.Map;
+import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.util.StringReplacer;
 import com.jabyftw.gameclient.util.Tickable;
 import com.jabyftw.gameclient.util.Util;
@@ -59,7 +59,8 @@ public class DisplayText implements Tickable, Disposable {
     }
 
     public void draw(SpriteBatch batch, int index) {
-        Vector2 project = holder.getLocation().cpy().add(0, (index + 1.5f) * Map.BOX2D_TILE_SCALE_WIDTH);
+        // Player location on screen, PLUS 1 on Y (worldLocation)
+        Vector2 project = Converter.BOX2D_COORDINATES.toScreenCoordinates(holder.getLocation().cpy()).add(Converter.WORLD_COORDINATES.toScreenCoordinates(new Vector2(0, index + 1 + 0.5f)));
 
         batch.setProjectionMatrix(Main.getInstance().getHudCamera().combined);
         String displayText = stringReplacer != null ? stringReplacer.replace(text) : text;
@@ -68,8 +69,8 @@ public class DisplayText implements Tickable, Disposable {
                 batch,
                 displayText,
                 Color.ORANGE,
-                (project.x * Main.PIXELS_PER_METER) - ((displayText.length() / 2f) * font.getSpaceWidth()),
-                (project.y * Main.PIXELS_PER_METER)
+                project.x - ((displayText.length() / 2f) * font.getSpaceWidth()),
+                project.y
         );
         batch.setProjectionMatrix(Main.getInstance().getGameCamera().combined);
     }

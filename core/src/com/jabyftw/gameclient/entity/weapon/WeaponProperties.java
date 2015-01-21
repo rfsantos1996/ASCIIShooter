@@ -1,9 +1,11 @@
 package com.jabyftw.gameclient.entity.weapon;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.jabyftw.gameclient.entity.entities.EntityManager;
 import com.jabyftw.gameclient.entity.entities.PlayerEntity;
-import com.jabyftw.gameclient.maps.Map;
+import com.jabyftw.gameclient.maps.Converter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -36,8 +38,9 @@ public enum WeaponProperties {
     AK_47("AK-47", Type.ASSAULT_RIFLE, 13, 600, 2.4f, 30, 715, 3.3f),
     M16("M16", Type.ASSAULT_RIFLE, 14, 815, 2.8f, 20, 985, 3.1f);
 
-    private static final float MAXIMUM_LIGHT_DISTANCE = 2f;
-    private static final float MINIMUM_LIGHT_DISTANCE = 0.05f;
+    public static final Color BASE_COLOR = Color.RED;
+    private static final float MAXIMUM_LIGHT_DISTANCE = 1.65f;
+    private static final float MINIMUM_LIGHT_DISTANCE = 0.025f;
     private static final float DIFFERENCE_FROM_HIGHEST_RPM_TO_LOWEST = 700f;
 
     private final Class aClass;
@@ -152,8 +155,9 @@ public enum WeaponProperties {
         private final short[] type;
 
         private Type(float maxDistance, float effectiveDistance, short[] type) {
-            this.maxDistance = maxDistance * Map.BOX2D_TILE_SCALE_WIDTH;
-            this.effectiveDistance = effectiveDistance * Map.BOX2D_TILE_SCALE_WIDTH; // Distance to drop the damage to 50%
+            Vector2 box2dCoordinates = Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(maxDistance, effectiveDistance)); // x = maxDistance, y = effectiveDistance
+            this.maxDistance = box2dCoordinates.x;
+            this.effectiveDistance = box2dCoordinates.y; // Distance to drop the damage to 50%
             this.type = type;
         }
 

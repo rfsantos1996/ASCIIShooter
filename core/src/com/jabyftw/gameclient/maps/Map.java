@@ -46,14 +46,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
     };
 
     public static final int TILE_WIDTH = 8, TILE_HEIGHT = 8;
-
     public static final float BASE_TILE_SCALE = 2.0f;
-
-    public static final float TILE_SCALE_WIDTH = BASE_TILE_SCALE * TILE_WIDTH;
-    public static final float TILE_SCALE_HEIGHT = BASE_TILE_SCALE * TILE_HEIGHT;
-
-    public static final float BOX2D_TILE_SCALE_WIDTH = TILE_SCALE_WIDTH / Main.PIXELS_PER_METER;
-    public static final float BOX2D_TILE_SCALE_HEIGHT = TILE_SCALE_HEIGHT / Main.PIXELS_PER_METER;
 
     public static ShapeRenderer shapeRenderer;
 
@@ -75,11 +68,10 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         world = new World(new Vector2(0, 0), true);
         world.setContactListener(new MyContactListener());
         {
-            float v_width_ppm = Main.V_WIDTH / Main.PIXELS_PER_METER;
-            float v_height_ppm = Main.V_HEIGHT / Main.PIXELS_PER_METER;
+            Vector2 box2dCoordinates = Converter.SCREEN_COORDINATES.toBox2dCoordinates(new Vector2(Main.V_WIDTH, Main.V_HEIGHT));
 
             box2dCamera = new MovableCamera();
-            box2dCamera.setToOrtho(false, v_width_ppm, v_height_ppm);
+            box2dCamera.setToOrtho(false, box2dCoordinates.x, box2dCoordinates.y);
         }
         debugRenderer = new Box2DDebugRenderer(true, true, true, true, true, true);
         rayHandler = new RayHandler(world);
@@ -101,24 +93,19 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
     public void update(final float deltaTime) {
         world.step(Main.STEP, 6, 2);
 
-        /*for(Block[] blockArray : blocks) {
+        // You should update every block
+        for(Block[] blockArray : blocks) {
             for(Block block : blockArray) {
                 block.update(deltaTime);
             }
-        }*/
-        doForVisibleBlocks(new BlockAction() {
-            @Override
-            public void doActionForBlock(Block block) {
-                block.update(deltaTime);
-            }
-        });
+        }
     }
 
     @Override
     public void draw(final SpriteBatch batch) {
         MovableCamera gameCamera = Main.getInstance().getGameCamera();
         {
-            box2dCamera.updatePosition(new Vector2(gameCamera.position.x / Main.PIXELS_PER_METER, gameCamera.position.y / Main.PIXELS_PER_METER), false);
+            box2dCamera.updatePosition(Converter.SCREEN_COORDINATES.toBox2dCoordinates(new Vector2(gameCamera.position.x, gameCamera.position.y)), false);
             box2dCamera.update();
         }
         {
@@ -133,11 +120,12 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         }
         {
             batch.setProjectionMatrix(box2dCamera.combined);
+
+            if(Main.isDebugging) debugRenderer.render(world, box2dCamera.combined);
             if(useLightning) {
                 rayHandler.setCombinedMatrix(box2dCamera.combined);
                 rayHandler.updateAndRender();
             }
-            if(Main.isDebugging) debugRenderer.render(world, box2dCamera.combined);
 
             // Back to main camera
             batch.setProjectionMatrix(gameCamera.combined);
@@ -177,11 +165,11 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
     }
 
     public void setWidth(int width) {
-        this.width = Math.min(Math.max(width, MapEditorPreparationState.MINIMUM_WIDTH), MapEditorPreparationState.MAXIMUM_WIDTH);
+        this.width = Math.min(Math.max(width, MathUtils.ceilPositive(MapEditorPreparationState.minimum.x)), MathUtils.ceilPositive(MapEditorPreparationState.maximum.x));
     }
 
     public void setHeight(int height) {
-        this.height = Math.min(Math.max(height, MapEditorPreparationState.MINIMUM_HEIGHT), MapEditorPreparationState.MAXIMUM_HEIGHT);
+        this.height = Math.min(Math.max(height, MathUtils.ceilPositive(MapEditorPreparationState.minimum.y)), MathUtils.ceilPositive(MapEditorPreparationState.maximum.y));
     }
 
     public String getDisplayName() {
@@ -208,23 +196,27 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         return rayHandler;
     }
 
-    public Vector2 box2dCoordinatesToWorldCoordinates(Vector2 vector2) {
-        return vector2.scl(1 / Map.BOX2D_TILE_SCALE_WIDTH, 1 / Map.BOX2D_TILE_SCALE_HEIGHT);
+    private Vector2 validateLocation(Vector2 worldCoordinates) {
+        float x = worldCoordinates.x;
+        float y = worldCoordinates.y;
+        {
+            // Fix X
+            if(x < 0) x = 0;
+            else if(x >= width) x = width - 1;
+
+            // Fix Y
+            if(y < 0) y = 0;
+            else if(y >= height) y = height - 1;
+        }
+        return worldCoordinates.set(x, y);
     }
 
-    public Vector2 screenCoordinatesToWorldCoordinates(Vector2 vector2) {
-        return vector2.scl(1f / Map.TILE_SCALE_WIDTH, 1f / Map.TILE_SCALE_HEIGHT);
+    public boolean isLocationValid(Vector2 worldCoordinates) {
+        return worldCoordinates.x >= 0 && worldCoordinates.x < width && worldCoordinates.y >= 0 && worldCoordinates.y < height;
     }
 
-    public boolean isLocationValid(Vector2 vector2, boolean worldCoordinates) {
-        // Box2dCoordinates / Map.TILE_SCALE -> worldCoordinates
-        if(!worldCoordinates)
-            vector2 = screenCoordinatesToWorldCoordinates(vector2);
-        return vector2.x >= 0 && vector2.x < width && vector2.y >= 0 && vector2.y < height;
-    }
-
-    public Block getBlockFrom(Vector2 vector2) {
-        return blocks[(int) vector2.x][(int) vector2.y];
+    public Block getBlockFrom(Vector2 worldCoordinates) {
+        return blocks[MathUtils.floorPositive(worldCoordinates.x)][MathUtils.floorPositive(worldCoordinates.y)];
     }
 
     public void createBaseBlock() {
@@ -237,14 +229,14 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
             bodyDef.type = BodyDef.BodyType.StaticBody;
             bodyDef.fixedRotation = true;
 
-            float scaleWidth = Map.BOX2D_TILE_SCALE_WIDTH;
-            float scaleHeight = Map.BOX2D_TILE_SCALE_HEIGHT;
+            Vector2 box2dLowerCorner = Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(0, 0)),
+                    box2dUpperCorner = Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(1, 1));
 
             chainShape.createLoop(new Vector2[]{
-                    new Vector2(0, 0),
-                    new Vector2(scaleWidth, 0),
-                    new Vector2(scaleWidth, scaleHeight),
-                    new Vector2(0, scaleHeight)
+                    new Vector2(box2dLowerCorner.x, box2dLowerCorner.y), // 0, 0
+                    new Vector2(box2dUpperCorner.x, box2dLowerCorner.y), // 1, 0
+                    new Vector2(box2dUpperCorner.x, box2dUpperCorner.y), // 1, 1
+                    new Vector2(box2dLowerCorner.x, box2dUpperCorner.y)  // 0, 1
             });
 
             fixtureDef.density = 1;
@@ -259,17 +251,16 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         }
         chainShape.dispose();
 
-        Vector2 min = new Vector2(0, 0),
-                max = new Vector2(width * Map.TILE_SCALE_WIDTH, height * Map.TILE_SCALE_HEIGHT);
-
-        createWorldBounds(min, max);
-        Main.getInstance().getGameCamera().setCameraBounds(min, max);
+        // World coordinates
+        Vector2 min = new Vector2(0, 0), max = new Vector2(width, height);
+        // Box2d
+        createWorldBounds(Converter.WORLD_COORDINATES.toBox2dCoordinates(min.cpy()), Converter.WORLD_COORDINATES.toBox2dCoordinates(max.cpy()));
+        // Screen
+        Main.getInstance().getGameCamera().setCameraBounds(Converter.WORLD_COORDINATES.toScreenCoordinates(min.cpy()), Converter.WORLD_COORDINATES.toScreenCoordinates(max.cpy()));
     }
 
-    private void createWorldBounds(Vector2 min, Vector2 max) {
-        min = min.cpy().scl(1 / Main.PIXELS_PER_METER);
-        max = max.cpy().scl(1 / Main.PIXELS_PER_METER);
-        System.out.println("WorldBounds -> { min: " + min.toString() + " max: " + max.toString() + " }");
+    private void createWorldBounds(Vector2 box2dMinCoordinates, Vector2 box2dMaxCoordinates) {
+        System.out.println("WorldBounds -> { min: " + box2dMinCoordinates.toString() + " max: " + box2dMaxCoordinates.toString() + " }");
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.fixedRotation = true;
@@ -278,10 +269,10 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
 
         ChainShape chainShape = new ChainShape();
         chainShape.createLoop(new Vector2[]{
-                new Vector2(min.x, min.y),
-                new Vector2(max.x, min.y),
-                new Vector2(max.x, max.y),
-                new Vector2(min.x, max.y)
+                new Vector2(box2dMinCoordinates.x, box2dMinCoordinates.y),
+                new Vector2(box2dMaxCoordinates.x, box2dMinCoordinates.y),
+                new Vector2(box2dMaxCoordinates.x, box2dMaxCoordinates.y),
+                new Vector2(box2dMinCoordinates.x, box2dMaxCoordinates.y)
         });
 
         FixtureDef fixtureDef = new FixtureDef();
@@ -297,36 +288,39 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         Vector3 unprojectLower = box2dCamera.unproject(new Vector3(0, Gdx.graphics.getHeight(), 0)),
                 unprojectUpper = box2dCamera.unproject(new Vector3(Gdx.graphics.getWidth(), 0, 0));
 
-        Vector2 lower = new Vector2(unprojectLower.x, unprojectLower.y).scl(1 / Map.BOX2D_TILE_SCALE_WIDTH),
-                upper = new Vector2(unprojectUpper.x, unprojectUpper.y).scl(1 / Map.BOX2D_TILE_SCALE_HEIGHT);
+        // Unprojection from BOX2D camera
+        Vector2 lowerCorner = Converter.BOX2D_COORDINATES.toWorldCoordinates(new Vector2(unprojectLower.x, unprojectLower.y)),
+                upperCorner = Converter.BOX2D_COORDINATES.toWorldCoordinates(new Vector2(unprojectUpper.x, unprojectUpper.y));
 
-        if(!isLocationValid(lower, true)) lower = new Vector2(0, 0);
-        if(!isLocationValid(upper, true)) upper = new Vector2(getWidth() - 1, getHeight() - 1);
-        // TODO fix only the x or y, not both
+        if(!isLocationValid(lowerCorner)) lowerCorner = validateLocation(lowerCorner);
+        if(!isLocationValid(upperCorner)) upperCorner = validateLocation(upperCorner);
 
-        for(int x = MathUtils.floorPositive(lower.x); x <= MathUtils.floorPositive(upper.x); x++) {
-            for(int y = MathUtils.floorPositive(lower.y); y <= MathUtils.floorPositive(upper.y); y++) {
-                blockAction.doActionForBlock(blocks[x][y]);
+        for(int x = MathUtils.floorPositive(lowerCorner.x); x <= MathUtils.floorPositive(upperCorner.x); x++) {
+            for(int y = MathUtils.floorPositive(lowerCorner.y); y <= MathUtils.floorPositive(upperCorner.y); y++) {
+                try {
+                    blockAction.doActionForBlock(blocks[x][y]);
+                } catch(ArrayIndexOutOfBoundsException e) {
+                    System.out.println(e.getMessage() + "\nx: " + x + " y: " + y + " upper: " + upperCorner.toString() + " lower: " + lowerCorner.toString());
+                }
             }
         }
     }
 
-    public Array<Block> getBlocksNear(Vector2 position, float distance) {
+    public Array<Block> getBlocksNear(Vector2 worldCoordinates, float worldDistance) {
         Array<Block> nearBlocks = new Array<Block>();
 
-        Vector2 upperCorner = position.cpy().add(distance, distance);
-        Vector2 lowerCorner = position.cpy().sub(distance, distance);
+        Vector2 upperCorner = worldCoordinates.cpy().add(worldDistance, worldDistance);
+        Vector2 lowerCorner = worldCoordinates.cpy().sub(worldDistance, worldDistance);
 
-        if(!isLocationValid(upperCorner, true)) upperCorner = new Vector2(getWidth() - 1, getHeight() - 1);
-        if(!isLocationValid(lowerCorner, true)) lowerCorner = new Vector2(0, 0);
-        // TODO fix only the x or y, not both
+        if(!isLocationValid(lowerCorner)) lowerCorner = validateLocation(lowerCorner);
+        if(!isLocationValid(upperCorner)) upperCorner = validateLocation(upperCorner);
 
-        distance = Util.square(distance);
+        worldDistance = Util.square(worldDistance);
 
         for(int x = (int) lowerCorner.x; x < (int) upperCorner.x; x++) {
             for(int y = (int) lowerCorner.y; y < (int) upperCorner.y; y++) {
                 Block block = blocks[x][y];
-                if(block.getBox2dBody().getPosition().dst2(position) <= distance)
+                if(block.getBox2dBody().getPosition().dst2(worldCoordinates) <= worldDistance)
                     nearBlocks.add(block);
             }
         }

@@ -12,6 +12,7 @@ import com.jabyftw.gameclient.entity.AbstractBox2dEntity;
 import com.jabyftw.gameclient.entity.util.Box2dConstants;
 import com.jabyftw.gameclient.entity.util.Entity;
 import com.jabyftw.gameclient.entity.weapon.WeaponProperties;
+import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.util.Util;
 
@@ -20,7 +21,7 @@ import com.jabyftw.gameclient.util.Util;
  */
 public class Bullet extends AbstractBox2dEntity {
 
-    private static final Vector2 bodyRadius = new Vector2(((Map.BOX2D_TILE_SCALE_WIDTH / 8f) * MathUtils.cosDeg(45)), ((Map.BOX2D_TILE_SCALE_HEIGHT / 8f) * MathUtils.sinDeg(45)));
+    private static final Vector2 bodyRadius = Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(1 / 4f / 2f, 1 / 4f / 2f).scl(MathUtils.cosDeg(45), MathUtils.sinDeg(45)));
     private static final int LIGHT_QUALITY = 56;
 
     private PointLight pointLight;
@@ -109,7 +110,7 @@ public class Bullet extends AbstractBox2dEntity {
             }
             circleShape.dispose();
         }
-        Color randomColor = Color.RED.cpy().add(-MathUtils.random(0.1f, 0.4f), MathUtils.random(0.2f, 0.5f), MathUtils.random(0.1f, 0.5f), 0).sub(0, 0, 0, 1 - 0.7f);
+        Color randomColor = WeaponProperties.BASE_COLOR.cpy().add(-MathUtils.random(0.05f, 0.2f), MathUtils.random(0.05f, 0.15f), MathUtils.random(0.05f, 0.20f), 0).sub(0, 0, 0, 1 - 0.7f);
         pointLight = Util.createPointLight(map.getRayHandler(), LIGHT_QUALITY, randomColor, weaponProperties.getLightDistance(), box2dBody);
     }
 

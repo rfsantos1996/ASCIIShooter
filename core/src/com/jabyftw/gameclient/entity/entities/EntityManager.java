@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.jabyftw.gameclient.entity.util.Entity;
 import com.jabyftw.gameclient.entity.util.MapViewer;
 import com.jabyftw.gameclient.gamestates.play.PlayState;
+import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.maps.util.BlockOpacity;
 import com.jabyftw.gameclient.maps.util.Mappable;
@@ -37,22 +38,22 @@ public class EntityManager implements Tickable, Disposable, Mappable {
         return playState.getMap();
     }
 
-    public Entity spawnEntity(EntityType entityType, Vector2 location) {
-        location = location.cpy();
-        getMap().isLocationValid(location, true);
+    public Entity spawnEntity(EntityType entityType, Vector2 worldLocation) {
+        worldLocation = worldLocation.cpy();
+        getMap().isLocationValid(worldLocation);
 
         long lastEntity = this.lastEntity + 1;
 
         Entity returningEntity;
         switch(entityType) {
             case PLAYER:
-                returningEntity = new PlayerEntity(lastEntity, this, getMap(), location);
+                returningEntity = new PlayerEntity(lastEntity, this, getMap(), worldLocation);
                 break;
             case TARGET:
-                returningEntity = new Target(lastEntity, this, getMap(), location);
+                returningEntity = new Target(lastEntity, this, getMap(), worldLocation);
                 break;
             case BULLET:
-                returningEntity = new Bullet(lastEntity, this, getMap(), location);
+                returningEntity = new Bullet(lastEntity, this, getMap(), worldLocation);
                 break;
             default:
                 return null;
@@ -85,7 +86,7 @@ public class EntityManager implements Tickable, Disposable, Mappable {
     public void draw(SpriteBatch batch, MapViewer viewer) {
         for(EntityType entityType : EntityType.drawOrderArray()) {
             for(Entity entity : getEntities(entityType)) {
-                if(viewer.getOpacityForBlock(getMap().getBlockFrom(getMap().screenCoordinatesToWorldCoordinates(entity.getLocation()))) == BlockOpacity.FULLY_VISIBLE)
+                if(viewer.getOpacityForBlock(getMap().getBlockFrom(Converter.BOX2D_COORDINATES.toWorldCoordinates(entity.getLocation()))) == BlockOpacity.FULLY_VISIBLE)
                     entity.draw(batch);
             }
         }

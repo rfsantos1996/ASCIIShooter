@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.gamestates.util.AbstractGameState;
+import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.maps.util.Material;
 import com.jabyftw.gameclient.screen.Animation;
@@ -75,17 +76,19 @@ public class MapEditorState extends AbstractGameState {
             float cameraSpeed = CAMERA_SPEED + (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) ? RUNNING_SPEED : 0);
             cameraSpeed *= deltaTime;
 
+            Vector2 screenCoordinates = Converter.WORLD_COORDINATES.toScreenCoordinates(new Vector2(cameraSpeed, cameraSpeed));
+
             if(Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP))
-                location.add(0, cameraSpeed * Map.TILE_SCALE_HEIGHT);
+                location.add(0, screenCoordinates.y);
 
             else if(Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN))
-                location.add(0, -cameraSpeed * Map.TILE_SCALE_HEIGHT);
+                location.add(0, -screenCoordinates.y);
 
             if(Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT))
-                location.add(-cameraSpeed * Map.TILE_SCALE_WIDTH, 0);
+                location.add(-screenCoordinates.x, 0);
 
             else if(Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT))
-                location.add(cameraSpeed * Map.TILE_SCALE_WIDTH, 0);
+                location.add(screenCoordinates.x, 0);
 
             gameCamera.updatePosition(location, false);
         }
@@ -96,15 +99,15 @@ public class MapEditorState extends AbstractGameState {
                     rightPressed = Gdx.input.isButtonPressed(Input.Buttons.RIGHT),
                     middlePressed = Gdx.input.isButtonPressed(Input.Buttons.MIDDLE);
 
-            Vector3 unprojection = gameCamera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
-            Vector2 unprojectionLocation = map.screenCoordinatesToWorldCoordinates(new Vector2(unprojection.x, unprojection.y));
+            Vector3 screenCoordinates = gameCamera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+            Vector2 worldLocation = Converter.SCREEN_COORDINATES.toWorldCoordinates(new Vector2(screenCoordinates.x, screenCoordinates.y));
 
-            if(map.isLocationValid(unprojectionLocation, true)) {
-                selectedLocation = unprojectionLocation;
+            if(map.isLocationValid(worldLocation)) {
+                selectedLocation = worldLocation;
                 if(leftPressed || rightPressed) {
-                    map.getBlockFrom(unprojectionLocation).setMaterial(rightPressed ? Material.AIR : selectedMaterial);
+                    map.getBlockFrom(worldLocation).setMaterial(rightPressed ? Material.AIR : selectedMaterial);
                 } else if(middlePressed) {
-                    setSelectedMaterial(map.getBlockFrom(unprojectionLocation).getMaterial());
+                    setSelectedMaterial(map.getBlockFrom(worldLocation).getMaterial());
                 }
             }
         }
@@ -124,15 +127,16 @@ public class MapEditorState extends AbstractGameState {
         {
             // Draw game
             map.draw(batch);
-            if(selectedLocation != null && map.isLocationValid(selectedLocation, true)) {
+            if(selectedLocation != null && map.isLocationValid(selectedLocation)) {
+                Vector2 screenCoordinates = Converter.BOX2D_COORDINATES.toScreenCoordinates(new Vector2(MathUtils.floorPositive(selectedLocation.x), MathUtils.floorPositive(selectedLocation.y)));
                 // Draw background (not to show the block)
                 ShapeRenderer shapeRenderer = Map.shapeRenderer;
                 shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
                 shapeRenderer.setProjectionMatrix(gameCamera.combined);
                 shapeRenderer.setColor(Color.BLACK.sub(0, 0, 0, 1 - 0.5f));
                 shapeRenderer.rect(
-                        MathUtils.floorPositive(selectedLocation.x) * Map.TILE_SCALE_WIDTH,
-                        MathUtils.floorPositive(selectedLocation.y) * Map.TILE_SCALE_HEIGHT,
+                        screenCoordinates.x,
+                        screenCoordinates.y,
                         0,
                         0,
                         Map.TILE_WIDTH,
@@ -147,8 +151,8 @@ public class MapEditorState extends AbstractGameState {
                 batch.setColor(Color.ORANGE.cpy().sub(0, 0, 0, 1 - 0.6f));
                 batch.draw(
                         selectedMaterialAnimation.getCurrentFrame(),
-                        MathUtils.floorPositive(selectedLocation.x) * Map.TILE_SCALE_WIDTH,
-                        MathUtils.floorPositive(selectedLocation.y) * Map.TILE_SCALE_HEIGHT,
+                        screenCoordinates.x,
+                        screenCoordinates.y,
                         0,
                         0,
                         Map.TILE_WIDTH,

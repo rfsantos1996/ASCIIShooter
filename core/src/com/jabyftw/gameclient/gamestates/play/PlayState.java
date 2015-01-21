@@ -11,6 +11,7 @@ import com.jabyftw.gameclient.entity.entities.EntityManager;
 import com.jabyftw.gameclient.entity.entities.EntityType;
 import com.jabyftw.gameclient.entity.entities.PlayerEntity;
 import com.jabyftw.gameclient.gamestates.util.AbstractGameState;
+import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.screen.MovableCamera;
 
@@ -61,7 +62,7 @@ public class PlayState extends AbstractGameState {
     @Override
     public void update(float deltaTime) {
         if(Gdx.input.isKeyJustPressed(Input.Keys.H)) {
-            entityManager.spawnEntity(EntityType.TARGET, playerEntity.getLocation().cpy());
+            entityManager.spawnEntity(EntityType.TARGET, Converter.BOX2D_COORDINATES.toWorldCoordinates(playerEntity.getLocation().cpy()));
         }
         {
             // Update cameras' position

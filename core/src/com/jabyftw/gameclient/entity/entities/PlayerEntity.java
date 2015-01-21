@@ -22,6 +22,7 @@ import com.jabyftw.gameclient.entity.weapon.Layout;
 import com.jabyftw.gameclient.entity.weapon.WeaponHolder;
 import com.jabyftw.gameclient.entity.weapon.WeaponsHolder;
 import com.jabyftw.gameclient.maps.Block;
+import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.maps.util.BlockOpacity;
 import com.jabyftw.gameclient.maps.util.Material;
@@ -36,18 +37,18 @@ import com.jabyftw.gameclient.util.files.enums.LangEnum;
  */
 public class PlayerEntity extends AbstractDamageableEntity implements MapViewer {
 
-    private static final Vector2 bodyRadius = new Vector2(((Map.BOX2D_TILE_SCALE_WIDTH / 4f) * MathUtils.cosDeg(45)), ((Map.BOX2D_TILE_SCALE_HEIGHT / 4f) * MathUtils.sinDeg(45)));
-
-    // Other stuff
-    private final Animation animation;
+    private static final Vector2 bodyRadius = Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(1 / 2f / 2f, 1 / 2f / 2f).scl(MathUtils.cosDeg(45), MathUtils.sinDeg(45)));
 
     // Properties
     public static final float DEFAULT_HEALTH = 10f;
     private static final float INTERACT_DISTANCE = 1.5f;
-    private static final float VIEW_DISTANCE = 10;
-    private static final float BASE_SPEED = 1.8f, RUNNING_SPEED = 0.9f;
-    private static final float STAMINA_DECREASE = 1f, MAXIMUM_STAMINA = STAMINA_DECREASE * 4f, STAMINA_RECOVER_COOLDOWN = 3.5f;
+    private static final float VIEW_DISTANCE = 12;
+    private static final float BASE_SPEED = 2.3f, RUNNING_SPEED = 1.4f;
+    private static final float MAXIMUM_STAMINA = 3.6f, STAMINA_RECOVER_COOLDOWN = 3.2f;
     private static final float MAX_ROTATION_SPEED = 360 * Main.STEP;
+
+    // Other stuff
+    private final Animation animation;
 
     // Weapons and layouts
     private WeaponHolder weaponHolder;
@@ -89,7 +90,7 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
             boolean isChangingWeaponNext = Gdx.input.isKeyJustPressed(Input.Keys.E),
                     isChangingWeaponPast = Gdx.input.isKeyJustPressed(Input.Keys.Q);
 
-            boolean isRunning = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) && stamina > deltaTime;
+            boolean isRunning = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
             boolean isForward = Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP),
                     isBackward = Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN);
             boolean isLeft = Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT),
@@ -101,8 +102,7 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
             doInteraction(isInteracting);
 
             // Control speed
-            float playerSpeed = (BASE_SPEED + (isRunning ? RUNNING_SPEED : 0)) * map.getBlockFrom(map.screenCoordinatesToWorldCoordinates(box2dBody.getPosition())).getMaterial().getSpeedMultiplier();
-            doMovements(isRunning, isLeft, isRight, isForward, isBackward, isMoving, deltaTime, playerSpeed);
+            doMovements(isRunning, isLeft, isRight, isForward, isBackward, isMoving, deltaTime);
 
             // Fire Weapon
             doWeaponing(isRunning, isAskingToReload, isMoving, isFiring, isChangingWeaponNext, isChangingWeaponPast, deltaTime);
@@ -159,38 +159,45 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
             weaponHolder.selectWeaponType(isChangingWeaponNext);
     }
 
-    private void doMovements(boolean isRunning, boolean isLeft, boolean isRight, boolean isForward, boolean isBackward, boolean isMoving, float deltaTime, float playerSpeed) {
+    private void doMovements(boolean isRunning, boolean isLeft, boolean isRight, boolean isForward, boolean isBackward, boolean isMoving, float deltaTime) {
         boolean isHorizontal = isLeft || isRight,
                 isVertical = isForward || isBackward;
 
         if(isRunning) {
             lastRun = 0;
-            stamina -= STAMINA_DECREASE * deltaTime;
+            stamina -= deltaTime;
+            if(stamina < 0) stamina = 0;
         } else {
             lastRun += deltaTime;
             if(lastRun >= STAMINA_RECOVER_COOLDOWN && stamina < MAXIMUM_STAMINA)
-                stamina += Math.min((isMoving ? STAMINA_DECREASE / 2f : STAMINA_DECREASE) * deltaTime, MAXIMUM_STAMINA - stamina);
+                stamina += Math.min((isMoving ? 0.6f : 1) * deltaTime, MAXIMUM_STAMINA - stamina);
         }
+
+        isRunning = isRunning && stamina > 0;
+        float speedMultiplierByWorld = map.getBlockFrom(Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition())).getMaterial().getSpeedMultiplier();
+        float playerSpeed = (BASE_SPEED + (isRunning ? RUNNING_SPEED : 0)) * speedMultiplierByWorld;
 
         {
             // Do movements
             //Vector2 position = box2dBody.getPosition();
             Vector2 velocity = box2dBody.getLinearVelocity();
 
-            box2dBody.setLinearVelocity(isHorizontal ? velocity.x : 0, isVertical ? velocity.y : 0);
-            velocity = box2dBody.getLinearVelocity();
+            float horizontalSpeed = playerSpeed * (isVertical ? MathUtils.cosDeg(45) : 1) * 1.5f;
+            float verticalSpeed = playerSpeed * (isHorizontal ? MathUtils.sinDeg(45) : 1) * 1.5f;
 
-            float horizontalSpeed = playerSpeed * Map.BOX2D_TILE_SCALE_WIDTH * (isVertical ? MathUtils.cosDeg(45) : 1) * 1.5f;
-            float verticalSpeed = playerSpeed * Map.BOX2D_TILE_SCALE_HEIGHT * (isHorizontal ? MathUtils.sinDeg(45) : 1) * 1.5f;
+            // Convert speed to 'Box2d speed'
+            Vector2 box2dSpeed = Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(horizontalSpeed, verticalSpeed));
+            horizontalSpeed = box2dSpeed.x;
+            verticalSpeed = box2dSpeed.y;
+
+            box2dBody.setLinearVelocity(isHorizontal ? Math.min(velocity.x, horizontalSpeed) : 0, isVertical ? Math.min(velocity.y, verticalSpeed) : 0);
+            velocity = box2dBody.getLinearVelocity();
 
             if(isHorizontal && Math.abs(velocity.x) < horizontalSpeed) {
                 if(isLeft && !isRight)
                     box2dBody.setLinearVelocity(-horizontalSpeed, isVertical ? velocity.y : 0);
-                    //box2dBody.applyLinearImpulse(-horizontalSpeed, 0, position.x, position.y, true);
-                    //else if(isRight && !isLeft)
                 else if(!isLeft)
                     box2dBody.setLinearVelocity(horizontalSpeed, isVertical ? velocity.y : 0);
-                //box2dBody.applyLinearImpulse(horizontalSpeed, 0, position.x, position.y, true);
 
                 // Update, if changed
                 velocity = box2dBody.getLinearVelocity();
@@ -199,11 +206,8 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
             if(isVertical && Math.abs(velocity.y) < verticalSpeed) {
                 if(isForward && !isBackward)
                     box2dBody.setLinearVelocity(isHorizontal ? velocity.x : 0, verticalSpeed);
-                    //box2dBody.applyLinearImpulse(0, verticalSpeed, position.x, position.y, true);
-                    //else if(isBackward && !isForward)
                 else if(!isForward)
                     box2dBody.setLinearVelocity(isHorizontal ? velocity.x : 0, -verticalSpeed);
-                //box2dBody.applyLinearImpulse(0, -verticalSpeed, position.x, position.y, true);
             }
         }
     }
@@ -243,8 +247,7 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
 
             BodyDef bodyDef = new BodyDef();
             bodyDef.fixedRotation = true;
-            bodyDef.position.set(spawnLocation);
-            bodyDef.position.scl(Map.BOX2D_TILE_SCALE_WIDTH, Map.BOX2D_TILE_SCALE_HEIGHT);
+            bodyDef.position.set(Converter.WORLD_COORDINATES.toBox2dCoordinates(spawnLocation.cpy()));
             bodyDef.type = BodyDef.BodyType.DynamicBody;
 
             FixtureDef fixtureDef = new FixtureDef();

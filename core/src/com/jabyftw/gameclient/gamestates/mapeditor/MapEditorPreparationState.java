@@ -2,10 +2,12 @@ package com.jabyftw.gameclient.gamestates.mapeditor;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.gamestates.StartMenu;
 import com.jabyftw.gameclient.gamestates.util.TabledGameState;
+import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.screen.Button;
 import com.jabyftw.gameclient.screen.ButtonTable;
@@ -20,12 +22,12 @@ import com.jabyftw.gameclient.util.files.enums.LangEnum;
  */
 public class MapEditorPreparationState extends TabledGameState {
 
-    public static final int MINIMUM_WIDTH = MathUtils.ceilPositive(Main.V_WIDTH / Map.TILE_SCALE_WIDTH),
-            MINIMUM_HEIGHT = MathUtils.ceilPositive(Main.V_HEIGHT / Map.TILE_SCALE_HEIGHT);
-    public static final int MAXIMUM_WIDTH = MathUtils.floorPositive(25f * (float) MINIMUM_WIDTH),
-            MAXIMUM_HEIGHT = MathUtils.floorPositive(25f * (float) MINIMUM_HEIGHT);
+    public static final Vector2 minimum = Converter.SCREEN_COORDINATES.toWorldCoordinates(new Vector2(Main.V_WIDTH, Main.V_HEIGHT)),
+            maximum = new Vector2(minimum).scl(25f);
 
     private TextInputButton mapNameInput;
+    private Vector2 currentVector = new Vector2();
+
     protected Map map;
 
     public MapEditorPreparationState() {
@@ -36,8 +38,9 @@ public class MapEditorPreparationState extends TabledGameState {
     public void create() {
         map = new Map();
 
-        map.setWidth(MINIMUM_WIDTH);
-        map.setHeight(MINIMUM_HEIGHT);
+        map.setWidth(MathUtils.ceilPositive(minimum.x));
+        map.setHeight(MathUtils.ceilPositive(minimum.y));
+        updateCurrentVector();
 
         FontEnum font = FontEnum.PRESS_START_28;
 
@@ -51,15 +54,16 @@ public class MapEditorPreparationState extends TabledGameState {
                 public void update(float deltaTime, boolean isSelected) {
                     setDisplayText(
                             getText().replaceAll("%width%", String.valueOf(map.getWidth()))
-                                    .replaceAll("%ratio%", Util.formatDecimal((map.getWidth() * Map.TILE_SCALE_WIDTH) / Main.V_WIDTH, 1))
+                                    .replaceAll("%ratio%", Util.formatDecimal(currentVector.x / Main.V_WIDTH, 1))
                     );
                 }
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     map.setWidth(map.getWidth() + Util.getButtonTimesPressedValue(positiveAction, timesPressed));
-                    if(map.getWidth() < MINIMUM_WIDTH) map.setWidth(MINIMUM_WIDTH);
-                    else if(map.getWidth() > MAXIMUM_WIDTH) map.setWidth(MAXIMUM_WIDTH);
+                    updateCurrentVector();
+                    if(map.getWidth() < minimum.x) map.setWidth(MathUtils.ceilPositive(minimum.x));
+                    else if(map.getWidth() > maximum.x) map.setWidth(MathUtils.ceilPositive(maximum.x));
                 }
             });
         }
@@ -69,15 +73,15 @@ public class MapEditorPreparationState extends TabledGameState {
                 public void update(float deltaTime, boolean isSelected) {
                     setDisplayText(
                             getText().replaceAll("%height%", String.valueOf(map.getHeight()))
-                                    .replaceAll("%ratio%", Util.formatDecimal((map.getHeight() * Map.TILE_SCALE_HEIGHT) / Main.V_HEIGHT, 1))
+                                    .replaceAll("%ratio%", Util.formatDecimal(currentVector.y / Main.V_HEIGHT, 1))
                     );
                 }
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     map.setHeight(map.getHeight() + Util.getButtonTimesPressedValue(positiveAction, timesPressed));
-                    if(map.getHeight() < MINIMUM_HEIGHT) map.setHeight(MINIMUM_HEIGHT);
-                    else if(map.getHeight() > MAXIMUM_HEIGHT) map.setHeight(MAXIMUM_HEIGHT);
+                    if(map.getHeight() < minimum.y) map.setWidth(MathUtils.ceilPositive(minimum.y));
+                    else if(map.getHeight() > maximum.y) map.setWidth(MathUtils.ceilPositive(maximum.y));
                 }
             });
         }
@@ -124,6 +128,10 @@ public class MapEditorPreparationState extends TabledGameState {
         }
 
         super.create();
+    }
+
+    private void updateCurrentVector() {
+        currentVector.set(Converter.WORLD_COORDINATES.toScreenCoordinates(new Vector2(map.getWidth(), map.getHeight())));
     }
 
     @Override
