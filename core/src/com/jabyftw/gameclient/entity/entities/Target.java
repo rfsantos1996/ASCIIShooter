@@ -78,6 +78,10 @@ public class Target extends AbstractDamageableEntity {
     }
 
     @Override
+    public void spawnBox2dBody() {
+    }
+
+    @Override
     public void doDamage(float damage) {
         damageTaken += damage;
         super.doDamage(damage);

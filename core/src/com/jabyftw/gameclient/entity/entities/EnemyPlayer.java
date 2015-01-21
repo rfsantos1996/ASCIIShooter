@@ -18,6 +18,11 @@ public class EnemyPlayer extends AbstractDamageableEntity {
     }
 
     @Override
+    public void spawnBox2dBody() {
+
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.PLAYER;
     }

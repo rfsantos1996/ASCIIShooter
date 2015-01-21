@@ -60,7 +60,7 @@ public class BasicWeapon implements WeaponController {
     }
 
     @Override
-    public boolean fire(float deltaTime, Entity owner, Vector2 location) {
+    public boolean fire(float deltaTime, Entity owner, Vector2 location, float angle) {
         // Has bullets in weapon capacity
         if(getCurrentWeaponCapacity() > 0) {
             // And is ready to fire
@@ -69,7 +69,7 @@ public class BasicWeapon implements WeaponController {
                 setElapsedFireTime(getElapsedFireTime() - getFiringDelay());
                 setElapsedReloadTime(0);
                 setCurrentWeaponCapacity(getCurrentWeaponCapacity() - 1);
-                spawnBullet(location, owner, weaponProperties.getBulletSpeed(), weaponProperties.getBulletDamage(), weaponProperties.getType().getMaxDistance());
+                spawnBullet(location, angle, owner, weaponProperties);
             }
             return true;
         } else if(!isReloading()) { // doesn't have bullets and isn't reload, ask to reload
@@ -123,12 +123,12 @@ public class BasicWeapon implements WeaponController {
     }
 
     @Override
-    public Entity spawnBullet(Vector2 location, Entity owner, float bulletSpeed, float bulletDamage, float maxDistance) {
+    public Entity spawnBullet(Vector2 location, float angle, Entity owner, WeaponProperties weaponProperties) {
         Bullet bullet = (Bullet) entityManager.spawnEntity(
                 EntityType.BULLET,
-                location.cpy().add(0.5f, 0.5f)
+                location
         );
-        bullet.setProperties(owner, bulletSpeed, bulletDamage, weaponProperties.getType().getEffectiveDistance(), weaponProperties.getType().getMaxDistance());
+        bullet.setProperties(owner, angle, weaponProperties);
         return bullet;
     }
 

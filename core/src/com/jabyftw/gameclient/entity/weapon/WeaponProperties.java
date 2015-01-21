@@ -3,6 +3,7 @@ package com.jabyftw.gameclient.entity.weapon;
 import com.badlogic.gdx.utils.Array;
 import com.jabyftw.gameclient.entity.entities.EntityManager;
 import com.jabyftw.gameclient.entity.entities.PlayerEntity;
+import com.jabyftw.gameclient.maps.Map;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -35,7 +36,9 @@ public enum WeaponProperties {
     AK_47("AK-47", Type.ASSAULT_RIFLE, 13, 600, 2.4f, 30, 715, 3.3f),
     M16("M16", Type.ASSAULT_RIFLE, 14, 815, 2.8f, 20, 985, 3.1f);
 
-    public static final float BASE_BULLET_SPEED = 15f;
+    private static final float MAXIMUM_LIGHT_DISTANCE = 2f;
+    private static final float MINIMUM_LIGHT_DISTANCE = 0.05f;
+    private static final float DIFFERENCE_FROM_HIGHEST_RPM_TO_LOWEST = 700f;
 
     private final Class aClass;
 
@@ -46,15 +49,15 @@ public enum WeaponProperties {
     private final float firingDelay, reloadDelay;
     private final int maximumWeaponCapacity;
     // Bullet defaults
-    private final float bulletSpeed, bulletDamage;
+    private final float bulletSpeedMetersSecond, bulletDamage;
 
     private WeaponProperties(String displayName, Type type, int levelRequired, int roundsPerMinute, float reloadDelay, int maximumWeaponCapacity,
-                             int speedInMetersPerSecond, float bulletsToKillNearTarget) {
-        this(BasicWeapon.class, displayName, type, levelRequired, 60f / (float) roundsPerMinute, reloadDelay, maximumWeaponCapacity, ((float) speedInMetersPerSecond / 100f) + BASE_BULLET_SPEED, PlayerEntity.DEFAULT_HEALTH / bulletsToKillNearTarget);
+                             int bulletSpeedMetersSecond, float bulletsToKillNearTarget) {
+        this(BasicWeapon.class, displayName, type, levelRequired, 60f / (float) roundsPerMinute, reloadDelay, maximumWeaponCapacity, bulletSpeedMetersSecond, PlayerEntity.DEFAULT_HEALTH / bulletsToKillNearTarget);
     }
 
     private WeaponProperties(Class aClass, String displayName, Type type, int levelRequired, float firingDelay, float reloadDelay, int maximumWeaponCapacity,
-                             float bulletSpeed, float bulletDamage) {
+                             float bulletSpeedMetersSecond, float bulletDamage) {
         this.aClass = aClass;
         this.displayName = displayName;
         this.type = type;
@@ -62,7 +65,7 @@ public enum WeaponProperties {
         this.firingDelay = firingDelay;
         this.reloadDelay = reloadDelay;
         this.maximumWeaponCapacity = maximumWeaponCapacity;
-        this.bulletSpeed = bulletSpeed;
+        this.bulletSpeedMetersSecond = bulletSpeedMetersSecond;
         this.bulletDamage = bulletDamage;
     }
 
@@ -90,8 +93,8 @@ public enum WeaponProperties {
         return maximumWeaponCapacity;
     }
 
-    public float getBulletSpeed() {
-        return bulletSpeed;
+    public float getBulletSpeedMetersSecond() {
+        return bulletSpeedMetersSecond;
     }
 
     public float getBulletDamage() {
@@ -135,6 +138,10 @@ public enum WeaponProperties {
         return list;
     }
 
+    public float getLightDistance() {
+        return ((MAXIMUM_LIGHT_DISTANCE - MINIMUM_LIGHT_DISTANCE) / DIFFERENCE_FROM_HIGHEST_RPM_TO_LOWEST) * bulletSpeedMetersSecond;
+    }
+
     public static enum Type {
 
         ASSAULT_RIFLE(20f, 14f, new short[]{WeaponHolder.WeaponType.PRIMARY.getType()}),
@@ -145,8 +152,8 @@ public enum WeaponProperties {
         private final short[] type;
 
         private Type(float maxDistance, float effectiveDistance, short[] type) {
-            this.maxDistance = maxDistance;
-            this.effectiveDistance = effectiveDistance; // Distance to drop the damage to 50%
+            this.maxDistance = maxDistance * Map.BOX2D_TILE_SCALE_WIDTH;
+            this.effectiveDistance = effectiveDistance * Map.BOX2D_TILE_SCALE_WIDTH; // Distance to drop the damage to 50%
             this.type = type;
         }
 

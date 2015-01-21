@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
 import com.jabyftw.gameclient.Main;
+import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.util.StringReplacer;
 import com.jabyftw.gameclient.util.Tickable;
 import com.jabyftw.gameclient.util.Util;
@@ -58,7 +59,7 @@ public class DisplayText implements Tickable, Disposable {
     }
 
     public void draw(SpriteBatch batch, int index) {
-        Vector2 project = holder.getLocation().cpy().add(0, 1 + index).add(0, 0.5f);
+        Vector2 project = holder.getLocation().cpy().add(0, (index + 1.5f) * Map.BOX2D_TILE_SCALE_WIDTH);
 
         batch.setProjectionMatrix(Main.getInstance().getHudCamera().combined);
         String displayText = stringReplacer != null ? stringReplacer.replace(text) : text;

@@ -12,9 +12,9 @@ public interface WeaponController extends Tickable {
 
     public void draw(SpriteBatch batch, Entity entityHoldingWeapon);
 
-    public boolean fire(float deltaTime, Entity owner, Vector2 location);
+    public boolean fire(float deltaTime, Entity owner, Vector2 location, float angle);
 
-    public Entity spawnBullet(Vector2 location, Entity owner, float bulletSpeed, float bulletDamage, float maxDistance);
+    public Entity spawnBullet(Vector2 location, float angle, Entity owner, WeaponProperties weaponProperties);
 
     public float getFiringDelay();
 

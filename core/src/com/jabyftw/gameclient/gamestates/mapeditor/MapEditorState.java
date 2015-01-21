@@ -6,6 +6,7 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.jabyftw.gameclient.Main;
@@ -130,8 +131,8 @@ public class MapEditorState extends AbstractGameState {
                 shapeRenderer.setProjectionMatrix(gameCamera.combined);
                 shapeRenderer.setColor(Color.BLACK.sub(0, 0, 0, 1 - 0.5f));
                 shapeRenderer.rect(
-                        (float) (Math.floor(selectedLocation.x) * Map.TILE_SCALE_WIDTH),
-                        (float) (Math.floor(selectedLocation.y) * Map.TILE_SCALE_HEIGHT),
+                        MathUtils.floorPositive(selectedLocation.x) * Map.TILE_SCALE_WIDTH,
+                        MathUtils.floorPositive(selectedLocation.y) * Map.TILE_SCALE_HEIGHT,
                         0,
                         0,
                         Map.TILE_WIDTH,
@@ -146,8 +147,8 @@ public class MapEditorState extends AbstractGameState {
                 batch.setColor(Color.ORANGE.cpy().sub(0, 0, 0, 1 - 0.6f));
                 batch.draw(
                         selectedMaterialAnimation.getCurrentFrame(),
-                        (float) (Math.floor(selectedLocation.x) * Map.TILE_SCALE_WIDTH),
-                        (float) (Math.floor(selectedLocation.y) * Map.TILE_SCALE_HEIGHT),
+                        MathUtils.floorPositive(selectedLocation.x) * Map.TILE_SCALE_WIDTH,
+                        MathUtils.floorPositive(selectedLocation.y) * Map.TILE_SCALE_HEIGHT,
                         0,
                         0,
                         Map.TILE_WIDTH,

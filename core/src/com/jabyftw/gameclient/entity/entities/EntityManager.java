@@ -38,6 +38,7 @@ public class EntityManager implements Tickable, Disposable, Mappable {
     }
 
     public Entity spawnEntity(EntityType entityType, Vector2 location) {
+        location = location.cpy();
         getMap().isLocationValid(location, true);
 
         long lastEntity = this.lastEntity + 1;

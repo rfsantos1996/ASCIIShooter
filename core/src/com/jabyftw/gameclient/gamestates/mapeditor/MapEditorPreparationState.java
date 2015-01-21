@@ -1,6 +1,7 @@
 package com.jabyftw.gameclient.gamestates.mapeditor;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.gamestates.StartMenu;
@@ -19,10 +20,10 @@ import com.jabyftw.gameclient.util.files.enums.LangEnum;
  */
 public class MapEditorPreparationState extends TabledGameState {
 
-    public static final int MINIMUM_WIDTH = (int) Math.ceil(Main.V_WIDTH / Map.TILE_SCALE_WIDTH),
-            MINIMUM_HEIGHT = (int) Math.ceil(Main.V_HEIGHT / Map.TILE_SCALE_HEIGHT);
-    public static final int MAXIMUM_WIDTH = (int) Math.floor(25f * (float) MINIMUM_WIDTH),
-            MAXIMUM_HEIGHT = (int) Math.floor(25f * (float) MINIMUM_HEIGHT);
+    public static final int MINIMUM_WIDTH = MathUtils.ceilPositive(Main.V_WIDTH / Map.TILE_SCALE_WIDTH),
+            MINIMUM_HEIGHT = MathUtils.ceilPositive(Main.V_HEIGHT / Map.TILE_SCALE_HEIGHT);
+    public static final int MAXIMUM_WIDTH = MathUtils.floorPositive(25f * (float) MINIMUM_WIDTH),
+            MAXIMUM_HEIGHT = MathUtils.floorPositive(25f * (float) MINIMUM_HEIGHT);
 
     private TextInputButton mapNameInput;
     protected Map map;

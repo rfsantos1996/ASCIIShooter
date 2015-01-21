@@ -1,8 +1,12 @@
 package com.jabyftw.gameclient.util;
 
+import box2dLight.PointLight;
+import box2dLight.RayHandler;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.jabyftw.gameclient.maps.Map;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -83,5 +87,18 @@ public abstract class Util {
             e.printStackTrace();
             return -1;
         }
+    }
+
+    public static PointLight createPointLight(RayHandler rayHandler, int rays, Color color, float lightDistance) {
+        PointLight pointLight = new PointLight(rayHandler, rays, color, lightDistance * 1.4f * Map.BOX2D_TILE_SCALE_WIDTH, 0, 0);
+        pointLight.setSoft(true);
+        pointLight.setSoftnessLength(0.5f);
+        return pointLight;
+    }
+
+    public static PointLight createPointLight(RayHandler rayHandler, int rays, Color color, float lightDistance, Body box2dBody) {
+        PointLight pointLight = createPointLight(rayHandler, rays, color, lightDistance);
+        pointLight.attachToBody(box2dBody);
+        return pointLight;
     }
 }

@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
@@ -17,6 +18,7 @@ import com.jabyftw.gameclient.gamestates.mapeditor.MapEditorPreparationState;
 import com.jabyftw.gameclient.maps.util.BlockOpacity;
 import com.jabyftw.gameclient.maps.util.BlockStorage;
 import com.jabyftw.gameclient.maps.util.Material;
+import com.jabyftw.gameclient.maps.util.MyContactListener;
 import com.jabyftw.gameclient.screen.MovableCamera;
 import com.jabyftw.gameclient.util.BlockAction;
 import com.jabyftw.gameclient.util.Drawable;
@@ -71,6 +73,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
 
     public Map() {
         world = new World(new Vector2(0, 0), true);
+        world.setContactListener(new MyContactListener());
         {
             float v_width_ppm = Main.V_WIDTH / Main.PIXELS_PER_METER;
             float v_height_ppm = Main.V_HEIGHT / Main.PIXELS_PER_METER;
@@ -231,6 +234,9 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         FixtureDef fixtureDef = new FixtureDef();
         ChainShape chainShape = new ChainShape();
         {
+            bodyDef.type = BodyDef.BodyType.StaticBody;
+            bodyDef.fixedRotation = true;
+
             float scaleWidth = Map.BOX2D_TILE_SCALE_WIDTH;
             float scaleHeight = Map.BOX2D_TILE_SCALE_HEIGHT;
 
@@ -253,10 +259,38 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         }
         chainShape.dispose();
 
-        Main.getInstance().getGameCamera().setCameraBounds(
-                0, width * Map.TILE_SCALE_WIDTH,
-                0, height * Map.TILE_SCALE_HEIGHT
-        );
+        Vector2 min = new Vector2(0, 0),
+                max = new Vector2(width * Map.TILE_SCALE_WIDTH, height * Map.TILE_SCALE_HEIGHT);
+
+        createWorldBounds(min, max);
+        Main.getInstance().getGameCamera().setCameraBounds(min, max);
+    }
+
+    private void createWorldBounds(Vector2 min, Vector2 max) {
+        min = min.cpy().scl(1 / Main.PIXELS_PER_METER);
+        max = max.cpy().scl(1 / Main.PIXELS_PER_METER);
+        System.out.println("WorldBounds -> { min: " + min.toString() + " max: " + max.toString() + " }");
+
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.fixedRotation = true;
+        bodyDef.type = BodyDef.BodyType.StaticBody;
+        Body body = world.createBody(bodyDef);
+
+        ChainShape chainShape = new ChainShape();
+        chainShape.createLoop(new Vector2[]{
+                new Vector2(min.x, min.y),
+                new Vector2(max.x, min.y),
+                new Vector2(max.x, max.y),
+                new Vector2(min.x, max.y)
+        });
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.filter.categoryBits = Box2dConstants.BIT_WORLD_BOUNDS;
+        fixtureDef.filter.maskBits = Box2dConstants.BIT_PLAYER | Box2dConstants.BIT_ENEMY | Box2dConstants.BIT_BULLET;
+        fixtureDef.shape = chainShape;
+        body.createFixture(fixtureDef);
+
+        chainShape.dispose();
     }
 
     public void doForVisibleBlocks(BlockAction blockAction) {
@@ -270,8 +304,8 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         if(!isLocationValid(upper, true)) upper = new Vector2(getWidth() - 1, getHeight() - 1);
         // TODO fix only the x or y, not both
 
-        for(int x = (int) Math.floor(lower.x); x <= (int) Math.floor(upper.x); x++) {
-            for(int y = (int) Math.floor(lower.y); y <= (int) Math.floor(upper.y); y++) {
+        for(int x = MathUtils.floorPositive(lower.x); x <= MathUtils.floorPositive(upper.x); x++) {
+            for(int y = MathUtils.floorPositive(lower.y); y <= MathUtils.floorPositive(upper.y); y++) {
                 blockAction.doActionForBlock(blocks[x][y]);
             }
         }

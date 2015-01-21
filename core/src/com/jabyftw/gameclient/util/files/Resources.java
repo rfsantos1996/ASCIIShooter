@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.math.MathUtils;
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.screen.Animation;
@@ -110,7 +111,7 @@ public abstract class Resources {
             }
 
             properties.setProperty(LANG_VERSION_STRING, String.valueOf(LangEnum.LANG_VERSION));
-            properties.store(langFile.writer(false), "Comment? Why would I need that? Here's a random number: " + Math.random());
+            properties.store(langFile.writer(false), "Comment? Why would I need that? Here's a random number: " + MathUtils.random());
 
         } catch(IOException e) {
             e.printStackTrace();

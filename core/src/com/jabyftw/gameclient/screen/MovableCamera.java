@@ -28,6 +28,13 @@ public class MovableCamera extends OrthographicCamera {
         this.maxY = maxY;
     }
 
+    public void setCameraBounds(Vector2 min, Vector2 max) {
+        this.minX = min.x;
+        this.minY = min.y;
+        this.maxX = max.x;
+        this.maxY = max.y;
+    }
+
     public void updatePosition(Vector2 vector2, boolean smooth) {
         if(smooth) {
             // Location smoothness

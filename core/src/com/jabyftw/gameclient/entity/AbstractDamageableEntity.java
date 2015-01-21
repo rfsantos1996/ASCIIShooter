@@ -8,7 +8,7 @@ import com.jabyftw.gameclient.maps.Map;
 /**
  * Created by Isa on 03/01/2015.
  */
-public abstract class AbstractDamageableEntity extends AbstractEntity implements Damageable {
+public abstract class AbstractDamageableEntity extends AbstractBox2dEntity implements Damageable {
 
     // Static defaults
     protected static final float DEFAULT_INVINCIBILITY_TIME_AFTER_DAMAGE = 0.125f, DEFAULT_INVINCIBILITY_TIME_AFTER_SPAWN = 2f;
@@ -39,7 +39,9 @@ public abstract class AbstractDamageableEntity extends AbstractEntity implements
         super.update(deltaTime);
     }
 
-    protected abstract void doOnDeath();
+    protected void doOnDeath() {
+        removeBox2dBody();
+    }
 
     @Override
     public boolean isHittable() {

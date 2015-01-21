@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.gamestates.mapeditor.MapEditorPreparationState;
 import com.jabyftw.gameclient.gamestates.play.PrePlayState;
@@ -85,7 +86,7 @@ public class StartMenu extends TabledGameState {
     @Override
     public void update(float deltaTime) {
         if(Main.getTicksPassed() % 6 == 0)
-            gameStateTitleColor.set((float) Math.random(), (float) Math.random(), (float) Math.random(), 1);
+            gameStateTitleColor.set(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1);
     }
 
     @Override
