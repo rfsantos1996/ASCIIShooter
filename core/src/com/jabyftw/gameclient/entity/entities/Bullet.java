@@ -44,9 +44,8 @@ public class Bullet extends AbstractBox2dEntity {
     @Override
     public void update(float deltaTime) {
         float maxDistance = Util.square(weaponProperties.getType().getMaxDistance());
-        if(spawnLocation.dst2(box2dBody.getPosition()) > maxDistance) {
+        if(spawnLocation.dst2(box2dBody.getPosition()) > maxDistance)
             remove(false);
-        }
         super.update(deltaTime);
     }
 
@@ -67,16 +66,23 @@ public class Bullet extends AbstractBox2dEntity {
     public void draw(SpriteBatch batch) {
         ShapeRenderer shapeRenderer = Map.shapeRenderer;
         {
+            Vector2 positionCoordinates = Converter.WORLD_COORDINATES.toScreenCoordinates(Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition()).sub(1, 0)),
+                    radiusCoordinates = Converter.WORLD_COORDINATES.toScreenCoordinates(new Vector2(1 / 6f, 1 / 6f));
+
+            Vector2 display = new Vector2(positionCoordinates).sub(MathUtils.PI / 2f, 0);
+
+            System.out.println("Display: " + display.toString() + " position: " + positionCoordinates.toString() + " distance: " + positionCoordinates.dst(display));
+
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            shapeRenderer.setColor(Color.WHITE);
-            shapeRenderer.line(
-                    box2dBody.getPosition().x - (BULLET_LENGTH * Map.TILE_WIDTH * Map.BOX2D_TILE_SCALE_WIDTH * MathUtils.cosDeg(box2dBody.getAngle())),
-                    box2dBody.getPosition().y - (BULLET_LENGTH * Map.TILE_HEIGHT * Map.BOX2D_TILE_SCALE_HEIGHT * MathUtils.sinDeg(box2dBody.getAngle())),
-                    box2dBody.getPosition().x + (BULLET_LENGTH * Map.TILE_WIDTH * Map.BOX2D_TILE_SCALE_WIDTH * MathUtils.cosDeg(box2dBody.getAngle())),
-                    box2dBody.getPosition().y + (BULLET_LENGTH * Map.TILE_HEIGHT * Map.BOX2D_TILE_SCALE_HEIGHT * MathUtils.sinDeg(box2dBody.getAngle())),
-                    Color.ORANGE,
-                    Color.RED
+            shapeRenderer.setColor(new Color(1, 0.2f, 0.7f, 1));
+            shapeRenderer.ellipse(
+                    display.x,
+                    display.y,
+                    radiusCoordinates.x,
+                    radiusCoordinates.y
             );
+            shapeRenderer.setColor(Color.YELLOW);
+            shapeRenderer.point(positionCoordinates.x, positionCoordinates.y, 0);
             shapeRenderer.end();
         }
         super.draw(batch);
@@ -110,7 +116,7 @@ public class Bullet extends AbstractBox2dEntity {
             }
             circleShape.dispose();
         }
-        Color randomColor = WeaponProperties.BASE_COLOR.cpy().add(-MathUtils.random(0.05f, 0.2f), MathUtils.random(0.05f, 0.15f), MathUtils.random(0.05f, 0.20f), 0).sub(0, 0, 0, 1 - 0.7f);
+        Color randomColor = WeaponProperties.BASE_COLOR.cpy().add(-MathUtils.random(0.05f, 0.2f), MathUtils.random(0.05f, 0.15f), MathUtils.random(0.05f, 0.20f), 1).add(0, 0, 0, 8);
         pointLight = Util.createPointLight(map.getRayHandler(), LIGHT_QUALITY, randomColor, weaponProperties.getLightDistance(), box2dBody);
     }
 

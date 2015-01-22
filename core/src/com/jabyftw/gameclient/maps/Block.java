@@ -92,5 +92,10 @@ public class Block implements Tickable, Mappable {
     }
 
     public void setInteracted() {
+        if(material == Material.CLOSED_DOOR)
+            setMaterial(Material.OPEN_DOOR);
+
+        else if(material == Material.OPEN_DOOR)
+            setMaterial(Material.CLOSED_DOOR);
     }
 }

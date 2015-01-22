@@ -80,6 +80,7 @@ public class MapEditorPreparationState extends TabledGameState {
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     map.setHeight(map.getHeight() + Util.getButtonTimesPressedValue(positiveAction, timesPressed));
+                    updateCurrentVector();
                     if(map.getHeight() < minimum.y) map.setWidth(MathUtils.ceilPositive(minimum.y));
                     else if(map.getHeight() > maximum.y) map.setWidth(MathUtils.ceilPositive(maximum.y));
                 }

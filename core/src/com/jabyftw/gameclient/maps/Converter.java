@@ -24,72 +24,57 @@ public enum Converter {
     BOX2D_COORDINATES {
         @Override
         public Vector2 toScreenCoordinates(Vector2 vector2) {
-            /*Vector2 returning;
-            System.out.println(name() + " to " + "screen" + "  @ " + vector2.toString() + " -> " + (returning = vector2.scl(Main.PIXELS_PER_METER)).toString());
-            return returning;*/
             return vector2.scl(Main.PIXELS_PER_METER);
         }
 
         @Override
         public Vector2 toWorldCoordinates(Vector2 vector2) {
-            /*Vector2 returning;
-            System.out.println(name() + " to " + "world" + "  @ " + vector2.toString() + " -> " + (returning = vector2.scl(1 / BOX2D_TILE_SCALE_WIDTH, 1 / BOX2D_TILE_SCALE_HEIGHT)).toString());
-            return returning;*/
-            return vector2.scl(1 / BOX2D_TILE_SCALE_WIDTH, 1 / BOX2D_TILE_SCALE_HEIGHT);
+            return vector2.scl(1 / BOX2D_TILE_SCALE.x, 1 / BOX2D_TILE_SCALE.y);
         }
     },
 
     WORLD_COORDINATES {
         @Override
         public Vector2 toBox2dCoordinates(Vector2 vector2) {
-            /*Vector2 returning;
-            System.out.println(name() + " to " + "box2d" + "  @ " + vector2.toString() + " -> " + (returning = vector2.scl(BOX2D_TILE_SCALE_WIDTH, BOX2D_TILE_SCALE_HEIGHT)).toString());
-            return returning;*/
-            return vector2.scl(BOX2D_TILE_SCALE_WIDTH, BOX2D_TILE_SCALE_HEIGHT);
+            return vector2.scl(BOX2D_TILE_SCALE.x, BOX2D_TILE_SCALE.y);
         }
 
         @Override
         public Vector2 toScreenCoordinates(Vector2 vector2) {
-            /*Vector2 returning;
-            System.out.println(name() + " to " + "screen" + "  @ " + vector2.toString() + " -> " + (returning = vector2.scl(TILE_SCALE_WIDTH, TILE_SCALE_HEIGHT)).toString());
-            return returning;*/
-            return vector2.scl(TILE_SCALE_WIDTH, TILE_SCALE_HEIGHT);
+            return vector2.scl(TILE_SCALE);
         }
     },
 
     SCREEN_COORDINATES {
         @Override
         public Vector2 toBox2dCoordinates(Vector2 vector2) {
-            /*Vector2 returning;
-            System.out.println(name() + " to " + "box2d" + "  @ " + vector2.toString() + " -> " + (returning = vector2.scl(1 / Main.PIXELS_PER_METER)).toString());
-            return returning;*/
             return vector2.scl(1 / Main.PIXELS_PER_METER);
         }
 
         @Override
         public Vector2 toWorldCoordinates(Vector2 vector2) {
-            Vector2 returning;
-            System.out.println(name() + " to " + "world" + "  @ " + vector2.toString() + " -> " + (returning = vector2.scl(1 / TILE_SCALE_WIDTH, 1 / TILE_SCALE_HEIGHT)).toString());
-            return returning;
-            //return vector2.scl(1 / TILE_SCALE_WIDTH, 1 / TILE_SCALE_HEIGHT);
+            return vector2.scl(1 / TILE_SCALE.x, 1 / TILE_SCALE.y);
         }
     };
 
-    public static final float TILE_SCALE_WIDTH = Map.BASE_TILE_SCALE * Map.TILE_WIDTH;
-    public static final float TILE_SCALE_HEIGHT = Map.BASE_TILE_SCALE * Map.TILE_HEIGHT;
+    public static final Vector2 TILE_SCALE = new Vector2(Map.TILE_WIDTH, Map.TILE_HEIGHT).scl(Map.BASE_TILE_SCALE);
+    public static final Vector2 BOX2D_TILE_SCALE = new Vector2(TILE_SCALE).scl(1 / Main.PIXELS_PER_METER);
 
-    public static final float BOX2D_TILE_SCALE_WIDTH = TILE_SCALE_WIDTH / Main.PIXELS_PER_METER;
-    public static final float BOX2D_TILE_SCALE_HEIGHT = TILE_SCALE_HEIGHT / Main.PIXELS_PER_METER;
+    //public static final float TILE_SCALE_WIDTH = Map.BASE_TILE_SCALE * Map.TILE_WIDTH;
+    //public static final float TILE_SCALE_HEIGHT = Map.BASE_TILE_SCALE * Map.TILE_HEIGHT;
+
+    //public static final float BOX2D_TILE_SCALE_WIDTH = TILE_SCALE_WIDTH / Main.PIXELS_PER_METER;
+    //public static final float BOX2D_TILE_SCALE_HEIGHT = TILE_SCALE_HEIGHT / Main.PIXELS_PER_METER;
 
     public Vector2 toBox2dCoordinates(Vector2 vector2) {
-        throw new AbstractMethodError("This method was not implemented yet");
+        throw new AbstractMethodError("You can't call this method on a Converter." + name() + "!");
     }
 
     public Vector2 toWorldCoordinates(Vector2 vector2) {
-        throw new AbstractMethodError("This method was not implemented yet");
+        throw new AbstractMethodError("You can't call this method on a Converter." + name() + "!");
     }
 
     public Vector2 toScreenCoordinates(Vector2 vector2) {
-        throw new AbstractMethodError("This method was not implemented yet");
+        throw new AbstractMethodError("You can't call this method on a Converter." + name() + "!");
     }
 }

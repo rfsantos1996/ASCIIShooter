@@ -59,20 +59,17 @@ public class DisplayText implements Tickable, Disposable {
     }
 
     public void draw(SpriteBatch batch, int index) {
-        // Player location on screen, PLUS 1 on Y (worldLocation)
-        Vector2 project = Converter.BOX2D_COORDINATES.toScreenCoordinates(holder.getLocation().cpy()).add(Converter.WORLD_COORDINATES.toScreenCoordinates(new Vector2(0, index + 1 + 0.5f)));
+        Vector2 location = Converter.BOX2D_COORDINATES.toScreenCoordinates(holder.getLocation().cpy()).add(Converter.WORLD_COORDINATES.toScreenCoordinates(new Vector2(0, index + 1 + 0.5f)));
 
-        batch.setProjectionMatrix(Main.getInstance().getHudCamera().combined);
         String displayText = stringReplacer != null ? stringReplacer.replace(text) : text;
         Util.drawText(
                 font,
                 batch,
                 displayText,
                 Color.ORANGE,
-                project.x - ((displayText.length() / 2f) * font.getSpaceWidth()),
-                project.y
+                location.x - ((displayText.length() / 2f) * font.getSpaceWidth()),
+                location.y
         );
-        batch.setProjectionMatrix(Main.getInstance().getGameCamera().combined);
     }
 
     public String getText() {

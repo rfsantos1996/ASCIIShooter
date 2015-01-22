@@ -211,9 +211,10 @@ public class Main extends ApplicationAdapter implements Tickable {
 
     private void testConverter() {
         Vector2 worldTest = new Vector2(1, 3),
-                screenTest = new Vector2(worldTest.x * Converter.TILE_SCALE_WIDTH, worldTest.y * Converter.TILE_SCALE_HEIGHT),
-                box2dTest = new Vector2(worldTest.x * Converter.BOX2D_TILE_SCALE_WIDTH, worldTest.y * Converter.BOX2D_TILE_SCALE_HEIGHT);
+                screenTest = new Vector2(worldTest).scl(Converter.TILE_SCALE),
+                box2dTest = new Vector2(worldTest).scl(Converter.BOX2D_TILE_SCALE);
         {
+            System.out.println();
             System.out.println("--- Testing converter ---");
             System.out.println("World -> screen @ " + worldTest.toString() + " -> " + Converter.WORLD_COORDINATES.toScreenCoordinates(worldTest.cpy()).toString());
             System.out.println("World -> box2d @ " + worldTest.toString() + " -> " + Converter.WORLD_COORDINATES.toBox2dCoordinates(worldTest.cpy()).toString());
@@ -224,6 +225,7 @@ public class Main extends ApplicationAdapter implements Tickable {
             System.out.println("Box2d -> screen @ " + box2dTest.toString() + " -> " + Converter.BOX2D_COORDINATES.toScreenCoordinates(box2dTest.cpy()).toString());
             System.out.println("Box2d -> world @ " + box2dTest.toString() + " -> " + Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dTest.cpy()).toString());
             System.out.println("--- Converter tested ---");
+            System.out.println();
         }
     }
 

@@ -27,6 +27,8 @@ import com.jabyftw.gameclient.util.Util;
 import com.jabyftw.gameclient.util.files.Resources;
 import com.jabyftw.gameclient.util.files.enums.FilesEnum;
 
+import java.util.Iterator;
+
 /**
  * Created by Rafael on 15/01/2015.
  */
@@ -92,6 +94,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
     @Override
     public void update(final float deltaTime) {
         world.step(Main.STEP, 6, 2);
+        rayHandler.update();
 
         // You should update every block
         for(Block[] blockArray : blocks) {
@@ -122,10 +125,9 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
             batch.setProjectionMatrix(box2dCamera.combined);
 
             if(Main.isDebugging) debugRenderer.render(world, box2dCamera.combined);
-            if(useLightning) {
-                rayHandler.setCombinedMatrix(box2dCamera.combined);
-                rayHandler.updateAndRender();
-            }
+            rayHandler.setCombinedMatrix(box2dCamera.combined);
+            if(useLightning)
+                rayHandler.render();
 
             // Back to main camera
             batch.setProjectionMatrix(gameCamera.combined);
@@ -320,7 +322,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         for(int x = (int) lowerCorner.x; x < (int) upperCorner.x; x++) {
             for(int y = (int) lowerCorner.y; y < (int) upperCorner.y; y++) {
                 Block block = blocks[x][y];
-                if(block.getBox2dBody().getPosition().dst2(worldCoordinates) <= worldDistance)
+                if(Converter.BOX2D_COORDINATES.toWorldCoordinates(block.getBox2dBody().getPosition()).dst2(worldCoordinates) <= worldDistance)
                     nearBlocks.add(block);
             }
         }
@@ -332,9 +334,12 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         Array<Material> desiredMaterials = new Array<Material>();
         desiredMaterials.addAll(materials);
 
-        for(Block block : blocks) {
+        Iterator<Block> iterator = blocks.iterator();
+        int size = blocks.size;
+        while(iterator.hasNext() && size > 0) {
+            Block block = iterator.next();
             if(!desiredMaterials.contains(block.getMaterial(), true))
-                blocks.removeValue(block, true);
+                iterator.remove();
         }
 
         return blocks;

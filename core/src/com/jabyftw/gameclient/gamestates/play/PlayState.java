@@ -67,7 +67,7 @@ public class PlayState extends AbstractGameState {
         {
             // Update cameras' position
             MovableCamera gameCamera = Main.getInstance().getGameCamera();
-            gameCamera.updatePosition((map.getViewer().getLocation() != null ? map.getViewer().getLocation().cpy().scl(Main.PIXELS_PER_METER) : new Vector2(map.getWidth() / 2, map.getHeight() / 2)), true);
+            gameCamera.updatePosition((map.getViewer().getLocation() != null ? Converter.BOX2D_COORDINATES.toScreenCoordinates(map.getViewer().getLocation()) : new Vector2(map.getWidth() / 2, map.getHeight() / 2)), true);
         }
         entityManager.update(deltaTime);
         map.update(deltaTime);

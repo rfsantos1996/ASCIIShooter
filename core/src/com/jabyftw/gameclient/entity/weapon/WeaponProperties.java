@@ -39,8 +39,8 @@ public enum WeaponProperties {
     M16("M16", Type.ASSAULT_RIFLE, 14, 815, 2.8f, 20, 985, 3.1f);
 
     public static final Color BASE_COLOR = Color.RED;
-    private static final float MAXIMUM_LIGHT_DISTANCE = 1.65f;
-    private static final float MINIMUM_LIGHT_DISTANCE = 0.025f;
+    private static final float MAXIMUM_LIGHT_DISTANCE = 1f;
+    private static final float MINIMUM_LIGHT_DISTANCE = 0.015f;
     private static final float DIFFERENCE_FROM_HIGHEST_RPM_TO_LOWEST = 700f;
 
     private final Class aClass;

@@ -41,7 +41,7 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
 
     // Properties
     public static final float DEFAULT_HEALTH = 10f;
-    private static final float INTERACT_DISTANCE = 1.5f;
+    private static final float INTERACT_DISTANCE = 2.5f;
     private static final float VIEW_DISTANCE = 12;
     private static final float BASE_SPEED = 2.3f, RUNNING_SPEED = 1.4f;
     private static final float MAXIMUM_STAMINA = 3.6f, STAMINA_RECOVER_COOLDOWN = 3.2f;
@@ -160,6 +160,7 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
     }
 
     private void doMovements(boolean isRunning, boolean isLeft, boolean isRight, boolean isForward, boolean isBackward, boolean isMoving, float deltaTime) {
+        // TODO Check https://github.com/rfsantos1996/ASCIIShooter/issues/1
         boolean isHorizontal = isLeft || isRight,
                 isVertical = isForward || isBackward;
 
@@ -213,16 +214,28 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
     }
 
     private void doInteraction(boolean isInteracting) {
-        Array<Block> blockArray = map.filterBlocksByMaterial(map.getBlocksNear(box2dBody.getPosition(), INTERACT_DISTANCE), Material.CLOSED_DOOR, Material.OPEN_DOOR);
+        if(doInteraction != null) doInteraction.dispose();
+
+        Array<Block> blockArray = map.filterBlocksByMaterial(
+                map.getBlocksNear(Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition()), INTERACT_DISTANCE),
+                Material.CLOSED_DOOR,
+                Material.OPEN_DOOR
+        );
         if(blockArray.size > 0) {
-            if(doInteraction != null) doInteraction.dispose();
             doInteraction = new DisplayText(this, Resources.getLang(LangEnum.DO_INTERACTION));
+
             if(isInteracting)
                 //noinspection LoopStatementThatDoesntLoop
                 for(Block block : blockArray) {
-                    if(map.getBlockFrom(box2dBody.getPosition()) != block)
+
+                    Vector2 blockCoordinates = Converter.BOX2D_COORDINATES.toWorldCoordinates(block.getBox2dBody().getPosition());
+                    Vector2 playerCoordinates = Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition());
+                    System.out.println("BlockCoordinates: " + blockCoordinates + " distance: " + playerCoordinates.dst(blockCoordinates) + " blockMaterial: " + block.getMaterial());
+
+                    if(map.getBlockFrom(box2dBody.getPosition()) != block) {
                         block.setInteracted();
-                    break;
+                        break;
+                    }
                 }
         }
     }
