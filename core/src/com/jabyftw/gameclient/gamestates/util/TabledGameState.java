@@ -16,37 +16,38 @@ public abstract class TabledGameState extends AbstractGameState {
 
     private final boolean includeEscape;
 
-    public TabledGameState(boolean includeEscape) {
-        this.includeEscape = includeEscape;
-    }
-
-    protected String gameStateTitle = "";
+    protected String gameStateTitleString = "";
     protected Color gameStateTitleColor = Color.ORANGE.cpy();
     protected FontEnum gameStateTitleFont = FontEnum.PRESS_START_46;
     protected ButtonTable buttonTable;
 
+    public TabledGameState(boolean includeEscape) {
+        this.includeEscape = includeEscape;
+    }
+
     @Override
     public void create() {
         desktopProcessor = ButtonTable.DesktopInputAdapter.getInputAdapter(buttonTable, includeEscape);
-        buttonTable.setOffsets(Main.V_WIDTH / 2f, Main.V_HEIGHT / 3f);
     }
 
     @Override
     public void draw(SpriteBatch batch) {
         batch.setProjectionMatrix(Main.getInstance().getHudCamera().combined);
         {
-            if(gameStateTitle.length() > 0) {
+            if(gameStateTitleString.length() > 0) {
                 // Title
                 BitmapFont font = Resources.getBitmapFont(gameStateTitleFont);
                 Util.drawText(
                         font,
                         batch,
-                        gameStateTitle.toUpperCase(),
+                        gameStateTitleString.toUpperCase(),
                         gameStateTitleColor,
-                        (Main.V_WIDTH / 2f) - ((gameStateTitle.length() / 2f) * font.getSpaceWidth()),
+                        (Main.V_WIDTH / 2f) - ((gameStateTitleString.length() / 2f) * font.getSpaceWidth()),
                         5 * Main.V_HEIGHT / 6f
                 );
             }
+
+            buttonTable.setOffsets(Main.V_WIDTH / 2f, Main.V_HEIGHT / (gameStateTitleString.length() > 0 ? 3f : 2f));
             buttonTable.draw(batch);
         }
     }

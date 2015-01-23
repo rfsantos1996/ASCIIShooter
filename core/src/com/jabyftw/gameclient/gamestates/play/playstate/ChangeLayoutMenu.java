@@ -1,4 +1,4 @@
-package com.jabyftw.gameclient.gamestates.play;
+package com.jabyftw.gameclient.gamestates.play.playstate;
 
 import com.badlogic.gdx.graphics.Color;
 import com.jabyftw.gameclient.Main;
@@ -30,7 +30,7 @@ public class ChangeLayoutMenu extends TabledGameState implements PseudoGameState
         FontEnum font = FontEnum.PRESS_START_28;
 
         gameStateTitleFont = font;
-        gameStateTitle = Resources.getLang(LangEnum.CHANGE_LAYOUT_TITLE);
+        gameStateTitleString = Resources.getLang(LangEnum.CHANGE_LAYOUT_TITLE);
         buttonTable = new ButtonTable(font, new Color(1, 1, 1, 1), new Color(0.8f, 0, 0, 1));
 
         final PlayerEntity playerEntity = playState.getPlayerEntity();

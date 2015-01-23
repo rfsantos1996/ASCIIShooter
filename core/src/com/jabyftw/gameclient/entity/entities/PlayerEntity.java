@@ -160,9 +160,8 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
     }
 
     private void doMovements(boolean isRunning, boolean isLeft, boolean isRight, boolean isForward, boolean isBackward, boolean isMoving, float deltaTime) {
-        // TODO Check https://github.com/rfsantos1996/ASCIIShooter/issues/1
-        boolean isHorizontal = isLeft || isRight,
-                isVertical = isForward || isBackward;
+        boolean isHorizontal = (isLeft && !isRight) || (!isLeft && isRight),
+                isVertical = (isForward && !isBackward) || (!isForward && isBackward);
 
         if(isRunning) {
             lastRun = 0;
@@ -180,7 +179,6 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
 
         {
             // Do movements
-            //Vector2 position = box2dBody.getPosition();
             Vector2 velocity = box2dBody.getLinearVelocity();
 
             float horizontalSpeed = playerSpeed * (isVertical ? MathUtils.cosDeg(45) : 1) * 1.5f;
@@ -191,24 +189,21 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
             horizontalSpeed = box2dSpeed.x;
             verticalSpeed = box2dSpeed.y;
 
-            box2dBody.setLinearVelocity(isHorizontal ? Math.min(velocity.x, horizontalSpeed) : 0, isVertical ? Math.min(velocity.y, verticalSpeed) : 0);
+            box2dBody.setLinearVelocity(
+                    isHorizontal ? Math.min(velocity.x, velocity.x < 0 ? -horizontalSpeed : horizontalSpeed) : 0,
+                    isVertical ? Math.min(velocity.y, velocity.y < 0 ? -verticalSpeed : verticalSpeed) : 0
+            );
             velocity = box2dBody.getLinearVelocity();
 
             if(isHorizontal && Math.abs(velocity.x) < horizontalSpeed) {
-                if(isLeft && !isRight)
-                    box2dBody.setLinearVelocity(-horizontalSpeed, isVertical ? velocity.y : 0);
-                else if(!isLeft)
-                    box2dBody.setLinearVelocity(horizontalSpeed, isVertical ? velocity.y : 0);
+                box2dBody.setLinearVelocity(isRight ? horizontalSpeed : -horizontalSpeed, isVertical ? velocity.y : 0);
 
                 // Update, if changed
                 velocity = box2dBody.getLinearVelocity();
             }
 
             if(isVertical && Math.abs(velocity.y) < verticalSpeed) {
-                if(isForward && !isBackward)
-                    box2dBody.setLinearVelocity(isHorizontal ? velocity.x : 0, verticalSpeed);
-                else if(!isForward)
-                    box2dBody.setLinearVelocity(isHorizontal ? velocity.x : 0, -verticalSpeed);
+                box2dBody.setLinearVelocity(isHorizontal ? velocity.x : 0, isForward ? verticalSpeed : -verticalSpeed);
             }
         }
     }
@@ -227,13 +222,8 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
             if(isInteracting)
                 //noinspection LoopStatementThatDoesntLoop
                 for(Block block : blockArray) {
-
-                    Vector2 blockCoordinates = Converter.BOX2D_COORDINATES.toWorldCoordinates(block.getBox2dBody().getPosition());
-                    Vector2 playerCoordinates = Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition());
-                    System.out.println("BlockCoordinates: " + blockCoordinates + " distance: " + playerCoordinates.dst(blockCoordinates) + " blockMaterial: " + block.getMaterial());
-
                     if(map.getBlockFrom(box2dBody.getPosition()) != block) {
-                        block.setInteracted();
+                        block.setInteracted(this);
                         break;
                     }
                 }

@@ -2,9 +2,11 @@ package com.jabyftw.gameclient.maps;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.jabyftw.gameclient.entity.util.Box2dConstants;
+import com.jabyftw.gameclient.entity.util.Entity;
 import com.jabyftw.gameclient.entity.util.MapViewer;
 import com.jabyftw.gameclient.maps.util.BlockOpacity;
 import com.jabyftw.gameclient.maps.util.Mappable;
@@ -91,11 +93,22 @@ public class Block implements Tickable, Mappable {
         }
     }
 
-    public void setInteracted() {
-        if(material == Material.CLOSED_DOOR)
-            setMaterial(Material.OPEN_DOOR);
+    public void setInteracted(Entity interactingEntity) {
+        // Interact if entity isn't inside the block
+        if(!map.getBlockFrom(Converter.BOX2D_COORDINATES.toWorldCoordinates(interactingEntity.getLocation())).equals(this)) {
+            if(material == Material.CLOSED_DOOR)
+                setMaterial(Material.OPEN_DOOR);
 
-        else if(material == Material.OPEN_DOOR)
-            setMaterial(Material.CLOSED_DOOR);
+            else if(material == Material.OPEN_DOOR)
+                setMaterial(Material.CLOSED_DOOR);
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == null || !(obj instanceof Block)) return false;
+        Vector2 otherBlock = Converter.BOX2D_COORDINATES.toWorldCoordinates(((Block) obj).getBox2dBody().getPosition());
+        Vector2 thisBlock = Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition());
+        return MathUtils.floorPositive(otherBlock.x) == MathUtils.floorPositive(thisBlock.x) && MathUtils.floorPositive(otherBlock.y) == MathUtils.floorPositive(thisBlock.y);
     }
 }

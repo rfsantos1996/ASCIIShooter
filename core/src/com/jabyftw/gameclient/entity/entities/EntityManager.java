@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.jabyftw.gameclient.entity.util.Entity;
 import com.jabyftw.gameclient.entity.util.MapViewer;
-import com.jabyftw.gameclient.gamestates.play.PlayState;
+import com.jabyftw.gameclient.gamestates.play.playstate.PlayState;
 import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.maps.util.BlockOpacity;

@@ -29,7 +29,7 @@ public class CreateProfileState extends TabledGameState {
     public void create() {
         FontEnum font = FontEnum.PRESS_START_28;
 
-        gameStateTitle = Resources.getLang(LangEnum.CREATE_PROFILE_TITLE);
+        gameStateTitleString = Resources.getLang(LangEnum.CREATE_PROFILE_TITLE);
         buttonTable = new ButtonTable(font, new Color(1, 1, 1, 1), new Color(0.8f, 0, 0, 1));
         {
             buttonTable.addButton(new Button(Resources.getLang(LangEnum.SELECTED_LANGUAGE_BUTTON), true) {

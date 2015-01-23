@@ -46,6 +46,11 @@ public enum LangEnum {
     MAP_EDITOR_BUTTON("Map Editor", "Editor de Mapas"),
     EXIT_BUTTON("Exit", "Sair"),
 
+    // PlayOptions menu
+    FIND_MATCH_BUTTON("Find match", "Encontrar partida"),
+    CREATE_MATCH_BUTTON("Create match", "Criar partida"),
+    CHANGE_LAYOUTS_BUTTON("Change layout", "Personalizar layout"),
+
     // PrePlayState menu
     SELECT_MAP_TITLE("Select your map", "Selecione seu mapa"),
     SELECT_MAP_BUTTON("Map: %mapname%", "Mapa: %mapname%"),

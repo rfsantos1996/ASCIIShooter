@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.gamestates.mapeditor.MapEditorPreparationState;
-import com.jabyftw.gameclient.gamestates.play.PrePlayState;
+import com.jabyftw.gameclient.gamestates.play.PlayOptionsMenu;
 import com.jabyftw.gameclient.gamestates.util.TabledGameState;
 import com.jabyftw.gameclient.screen.Button;
 import com.jabyftw.gameclient.screen.ButtonTable;
@@ -29,7 +29,7 @@ public class StartMenu extends TabledGameState {
     public void create() {
         FontEnum font = FontEnum.PRESS_START_28;
 
-        gameStateTitle = Resources.getLang(LangEnum.GAME_TITLE).toUpperCase();
+        gameStateTitleString = Resources.getLang(LangEnum.GAME_TITLE).toUpperCase();
         buttonTable = new ButtonTable(font, new Color(1, 1, 1, 1), new Color(0.8f, 0, 0, 1));
         {
             buttonTable.addButton(new Button(Resources.getLang(LangEnum.PLAY_BUTTON), false) {
@@ -39,7 +39,7 @@ public class StartMenu extends TabledGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new PrePlayState());
+                    Main.getInstance().setCurrentGameState(new PlayOptionsMenu());
                 }
             });
         }
@@ -94,7 +94,7 @@ public class StartMenu extends TabledGameState {
         batch.setProjectionMatrix(Main.getInstance().getHudCamera().combined);
         {
             BitmapFont font = Resources.getBitmapFont(FontEnum.PRESS_START_14);
-            Util.drawText(font, batch, "version " + Main.VERSION, 0, 0 + (font.getLineHeight() / 2f));
+            Util.drawText(font, batch, "version " + Main.GAME_VERSION, 0, 0 + (font.getLineHeight() / 2f));
             super.draw(batch);
         }
     }

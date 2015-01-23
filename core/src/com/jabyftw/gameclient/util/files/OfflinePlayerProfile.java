@@ -11,24 +11,17 @@ import com.jabyftw.gameclient.Main;
  */
 public class OfflinePlayerProfile implements Json.Serializable {
 
-    public static final float CURRENT_VERSION = 0.1f;
+    public static final float PROFILE_VERSION = 0.1f;
 
     // Version 1.0
     private String playerName;
-
     private int width = Main.V_WIDTH, height = Main.V_HEIGHT;
     private boolean fullscreen = false;
 
     private Resources.Language selectedLanguage = Resources.Language.ENGLISH;
-    //private Layout[] layouts = new Layout[5];
 
     public OfflinePlayerProfile() {
         selectedLanguage = Resources.Language.ENGLISH;
-
-        /*for(int i = 0; i < layouts.length; i++) {
-            layouts[i] = new Layout("Layout " + (i + 1));
-            layouts[i].validate(this);
-        }*/
     }
 
     /*
@@ -76,30 +69,27 @@ public class OfflinePlayerProfile implements Json.Serializable {
 
     @Override
     public void write(Json json) {
-        json.writeValue("version", CURRENT_VERSION, Float.class);
+        json.writeValue("profileVersion", PROFILE_VERSION, Float.class);
         {
             json.writeValue("playerName", playerName, String.class);
-
             json.writeValue("width", width, Integer.class);
             json.writeValue("height", height, Integer.class);
             json.writeValue("fullscreen", fullscreen, Boolean.class);
-
             json.writeValue("selectedLanguage", selectedLanguage.name(), String.class);
-            //json.writeValue("layouts", layouts);
         }
-        System.out.println("Wrote player profile");
+        System.out.println("OfflinePlayerProfile.write = { name: " + playerName + " selectedLanguage: " + selectedLanguage.name() + " }");
     }
 
     @Override
     public void read(Json json, JsonValue jsonData) {
-        float fileVersion = jsonData.getFloat("version");
+        float profileVersion = jsonData.getFloat("profileVersion");
         {
             // Version 1.0
             setPlayerName(jsonData.getString("playerName"));
             setDisplayMode(jsonData.getInt("width"), jsonData.getInt("height"), jsonData.getBoolean("fullscreen"));
             setSelectedLanguage(Resources.Language.valueOf(jsonData.getString("selectedLanguage")));
         }
-        System.out.println("Read Player profile");
+        System.out.println("OfflinePlayerProfile.read = { name: " + playerName + " selectedLanguage: " + selectedLanguage.name() + " }");
     }
 
     public void saveProfile(FileHandle fileHandle) {

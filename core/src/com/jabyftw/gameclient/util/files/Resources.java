@@ -131,7 +131,7 @@ public abstract class Resources {
             }
 
             Set<String> mapNames = Resources.getMapNames();
-            System.out.println("Loaded maps: " + Arrays.toString(mapNames.toArray()));
+            System.out.println("Resources.reloadMapsFromDirectory { maps: " + Arrays.toString(mapNames.toArray()) + " }");
         }
     }
 

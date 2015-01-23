@@ -1,4 +1,4 @@
-package com.jabyftw.gameclient.gamestates.play;
+package com.jabyftw.gameclient.gamestates.play.playstate;
 
 import com.badlogic.gdx.graphics.Color;
 import com.jabyftw.gameclient.Main;
@@ -17,12 +17,12 @@ import java.util.Set;
  */
 public class PrePlayState extends TabledGameState implements PseudoGameState {
 
+    private String[] availableMaps;
+    private int selectedMap = 0;
+
     public PrePlayState() {
         super(true);
     }
-
-    private String[] availableMaps;
-    private int selectedMap = 0;
 
     @Override
     public void create() {
@@ -31,7 +31,7 @@ public class PrePlayState extends TabledGameState implements PseudoGameState {
         Set<String> mapNames = Resources.getMapNames();
         availableMaps = mapNames.toArray(new String[mapNames.size()]);
 
-        gameStateTitle = Resources.getLang(LangEnum.SELECT_MAP_TITLE);
+        gameStateTitleString = Resources.getLang(LangEnum.SELECT_MAP_TITLE);
         gameStateTitleFont = font;
 
         buttonTable = new ButtonTable(font, new Color(1, 1, 1, 1), new Color(0.8f, 0, 0, 1));

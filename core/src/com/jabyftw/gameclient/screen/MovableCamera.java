@@ -27,7 +27,7 @@ public class MovableCamera extends OrthographicCamera {
     }
 
     public void setCameraBounds(Vector2 minScreenCoordinates, Vector2 maxScreenCoordinates) {
-        System.out.println("CameraBounds -> { min: " + minScreenCoordinates.toString() + " max: " + maxScreenCoordinates.toString() + " }");
+        System.out.println("MovableCamera.setCameraBounds { min: " + minScreenCoordinates.toString() + " max: " + maxScreenCoordinates.toString() + " }");
         this.min.set(minScreenCoordinates);
         this.max.set(maxScreenCoordinates);
     }

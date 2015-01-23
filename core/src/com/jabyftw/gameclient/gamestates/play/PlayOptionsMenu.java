@@ -1,10 +1,10 @@
-package com.jabyftw.gameclient.gamestates.mapeditor;
+package com.jabyftw.gameclient.gamestates.play;
 
 import com.badlogic.gdx.graphics.Color;
 import com.jabyftw.gameclient.Main;
-import com.jabyftw.gameclient.gamestates.ConfigMenu;
-import com.jabyftw.gameclient.gamestates.StartMenu;
-import com.jabyftw.gameclient.gamestates.play.playstate.PlayState;
+import com.jabyftw.gameclient.gamestates.play.other.CreateLayoutMenu;
+import com.jabyftw.gameclient.gamestates.play.other.CreateMatchMenu;
+import com.jabyftw.gameclient.gamestates.play.other.FindMatchMenu;
 import com.jabyftw.gameclient.gamestates.util.PseudoGameState;
 import com.jabyftw.gameclient.gamestates.util.TabledGameState;
 import com.jabyftw.gameclient.screen.Button;
@@ -14,51 +14,56 @@ import com.jabyftw.gameclient.util.files.enums.FontEnum;
 import com.jabyftw.gameclient.util.files.enums.LangEnum;
 
 /**
- * Created by Isa on 02/01/2015.
+ * Created by Rafael on 22/01/2015.
  */
-public class MapEditorMenu extends TabledGameState implements PseudoGameState {
+public class PlayOptionsMenu extends TabledGameState implements PseudoGameState {
 
-    private final MapEditorState previousState;
-
-    public MapEditorMenu(MapEditorState mapEditorState) {
+    public PlayOptionsMenu() {
         super(true);
-        this.previousState = mapEditorState;
     }
 
     @Override
     public void create() {
-        FontEnum font = FontEnum.PRESS_START_28;
+        FontEnum font = FontEnum.PRESS_START_20;
 
-        gameStateTitleFont = font;
-        gameStateTitleString = Resources.getLang(LangEnum.MAP_EDITOR_OPTIONS);
+        gameStateTitleString = Resources.getLang(LangEnum.PLAY_BUTTON);
+        gameStateTitleFont = FontEnum.PRESS_START_28;
+
         buttonTable = new ButtonTable(font, new Color(1, 1, 1, 1), new Color(0.8f, 0, 0, 1));
         {
-            buttonTable.addButton(new Button(Resources.getLang(LangEnum.TEST_MAP), false) {
+            buttonTable.addButton(new Button(Resources.getLang(LangEnum.FIND_MATCH_BUTTON), true) {
                 @Override
                 public void update(float deltaTime, boolean isSelected) {
                 }
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    previousState.getMap().setShouldDispose(false);
-                    Main.getInstance().setCurrentGameState(new PlayState(previousState.getMap(), true));
+                    Main.getInstance().setCurrentGameState(new FindMatchMenu());
                 }
             });
-        }
-        {
-            buttonTable.addButton(new Button(Resources.getLang(LangEnum.SETTINGS_BUTTON), false) {
+            buttonTable.addButton(new Button(Resources.getLang(LangEnum.CREATE_MATCH_BUTTON), true) {
                 @Override
                 public void update(float deltaTime, boolean isSelected) {
                 }
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new ConfigMenu());
+                    Main.getInstance().setCurrentGameState(new CreateMatchMenu());
+                }
+            });
+            buttonTable.addButton(new Button(Resources.getLang(LangEnum.CHANGE_LAYOUTS_BUTTON), true) {
+                @Override
+                public void update(float deltaTime, boolean isSelected) {
+                }
+
+                @Override
+                public void doButtonAction(boolean positiveAction, int timesPressed) {
+                    Main.getInstance().setCurrentGameState(new CreateLayoutMenu());
                 }
             });
         }
         {
-            buttonTable.addButton(new Button(Resources.getLang(LangEnum.BACK_BUTTON), false) {
+            buttonTable.addButton(new Button(Resources.getLang(LangEnum.BACK_BUTTON), true) {
                 @Override
                 public void update(float deltaTime, boolean isSelected) {
                 }
@@ -66,18 +71,6 @@ public class MapEditorMenu extends TabledGameState implements PseudoGameState {
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     Main.getInstance().setCurrentGameState(null);
-                }
-            });
-        }
-        {
-            buttonTable.addButton(new Button(Resources.getLang(LangEnum.BACK_TO_TITLE_BUTTON), false) {
-                @Override
-                public void update(float deltaTime, boolean isSelected) {
-                }
-
-                @Override
-                public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new StartMenu());
                 }
             });
         }

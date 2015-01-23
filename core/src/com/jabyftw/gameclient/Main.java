@@ -30,8 +30,8 @@ import java.util.LinkedList;
 
 public class Main extends ApplicationAdapter implements Tickable {
 
-    public static final float VERSION = 0.1f;
-    public static final String WINDOW_TITLE = "<GAME NAME HERE> v" + VERSION;
+    public static final float GAME_VERSION = 0.1f;
+    public static final String WINDOW_TITLE = "<GAME NAME HERE> v" + GAME_VERSION;
     public static boolean isDebugging = false;
 
     public static final float STEP = 1f / 60f;
@@ -87,9 +87,11 @@ public class Main extends ApplicationAdapter implements Tickable {
         hudViewport = new FitViewport(V_WIDTH, V_HEIGHT, hudCamera);
 
         batch = new SpriteBatch();
+
         //gameStateManager = new GameStateManager(new CreateConnectionState());
         setOnlineProfile(new OnlinePlayerProfile());
         gameStateManager = new GameStateManager(new StartMenu());
+
         backgroundColor = new Color(0.43f, 0.43f, 0.43f, 1);
 
         averageDeltaTime = new LinkedList<Float>();
@@ -215,7 +217,7 @@ public class Main extends ApplicationAdapter implements Tickable {
                 box2dTest = new Vector2(worldTest).scl(Converter.BOX2D_TILE_SCALE);
         {
             System.out.println();
-            System.out.println("--- Testing converter ---");
+            System.out.println("--- Main.testConverter ---");
             System.out.println("World -> screen @ " + worldTest.toString() + " -> " + Converter.WORLD_COORDINATES.toScreenCoordinates(worldTest.cpy()).toString());
             System.out.println("World -> box2d @ " + worldTest.toString() + " -> " + Converter.WORLD_COORDINATES.toBox2dCoordinates(worldTest.cpy()).toString());
             System.out.println("-------------------------");

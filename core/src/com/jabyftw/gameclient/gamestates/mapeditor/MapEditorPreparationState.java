@@ -45,7 +45,7 @@ public class MapEditorPreparationState extends TabledGameState {
         FontEnum font = FontEnum.PRESS_START_28;
 
         gameStateTitleFont = font;
-        gameStateTitle = Resources.getLang(LangEnum.MAP_EDITOR_PREFERENCES);
+        gameStateTitleString = Resources.getLang(LangEnum.MAP_EDITOR_PREFERENCES);
 
         buttonTable = new ButtonTable(font, new Color(1, 1, 1, 1), new Color(0.8f, 0, 0, 1));
         {

@@ -23,7 +23,7 @@ public class ConfigMenu extends TabledGameState implements PseudoGameState {
 
     @Override
     public void create() {
-        gameStateTitle = Resources.getLang(LangEnum.SETTINGS_BUTTON);
+        gameStateTitleString = Resources.getLang(LangEnum.SETTINGS_BUTTON);
         buttonTable = new ButtonTable(FontEnum.PRESS_START_28, new Color(1, 1, 1, 1), new Color(0.8f, 0, 0, 1));
         {
             buttonTable.addButton(new Button(Resources.getLang(LangEnum.SELECTED_LANGUAGE_BUTTON), true) {

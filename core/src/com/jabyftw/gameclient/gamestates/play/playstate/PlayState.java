@@ -1,4 +1,4 @@
-package com.jabyftw.gameclient.gamestates.play;
+package com.jabyftw.gameclient.gamestates.play.playstate;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;

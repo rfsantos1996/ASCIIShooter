@@ -262,7 +262,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
     }
 
     private void createWorldBounds(Vector2 box2dMinCoordinates, Vector2 box2dMaxCoordinates) {
-        System.out.println("WorldBounds -> { min: " + box2dMinCoordinates.toString() + " max: " + box2dMaxCoordinates.toString() + " }");
+        System.out.println("Map.createWorldBounds { min: " + box2dMinCoordinates.toString() + " max: " + box2dMaxCoordinates.toString() + " }");
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.fixedRotation = true;
@@ -309,7 +309,6 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
     }
 
     public Array<Block> getBlocksNear(Vector2 worldCoordinates, float worldDistance) {
-        Array<Block> nearBlocks = new Array<Block>();
 
         Vector2 upperCorner = worldCoordinates.cpy().add(worldDistance, worldDistance);
         Vector2 lowerCorner = worldCoordinates.cpy().sub(worldDistance, worldDistance);
@@ -318,6 +317,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         if(!isLocationValid(upperCorner)) upperCorner = validateLocation(upperCorner);
 
         worldDistance = Util.square(worldDistance);
+        Array<Block> nearBlocks = new Array<Block>(false, MathUtils.ceilPositive(worldDistance * Util.square(2) * 1.2f));
 
         for(int x = (int) lowerCorner.x; x < (int) upperCorner.x; x++) {
             for(int y = (int) lowerCorner.y; y < (int) upperCorner.y; y++) {
@@ -359,7 +359,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
 
     public void setUseLightning(boolean useLightning) {
         this.useLightning = useLightning;
-        System.out.println("Using lightning: " + useLightning);
+        System.out.println("Map.setUseLightning { useLightning: " + useLightning + " }");
     }
 
     public boolean shouldDispose() {
@@ -422,7 +422,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
             size++;
         }
 
-        System.out.println("Read " + size + " blocks");
+        System.out.println("Map.read = { " + size + " blocks }");
         Main.gc();
     }
 }

@@ -1,4 +1,4 @@
-package com.jabyftw.gameclient.gamestates.play;
+package com.jabyftw.gameclient.gamestates.play.playstate;
 
 import com.badlogic.gdx.graphics.Color;
 import com.jabyftw.gameclient.Main;
@@ -30,7 +30,7 @@ public class PlayStateMenu extends TabledGameState implements PseudoGameState {
     @Override
     public void create() {
         gameStateTitleFont = FontEnum.PRESS_START_28;
-        gameStateTitle = Resources.getLang(LangEnum.PAUSE_MENU_TITLE);
+        gameStateTitleString = Resources.getLang(LangEnum.PAUSE_MENU_TITLE);
 
         buttonTable = new ButtonTable(gameStateTitleFont, new Color(1, 1, 1, 1), new Color(0.8f, 0, 0, 1));
         {
