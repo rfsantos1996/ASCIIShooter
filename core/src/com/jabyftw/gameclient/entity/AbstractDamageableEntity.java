@@ -1,41 +1,45 @@
 package com.jabyftw.gameclient.entity;
 
 import com.badlogic.gdx.graphics.Color;
-import com.jabyftw.gameclient.entity.entities.EntityManager;
-import com.jabyftw.gameclient.entity.util.Damageable;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Filter;
+import com.badlogic.gdx.physics.box2d.Fixture;
+import com.jabyftw.gameclient.entity.util.DamageableEntity;
 import com.jabyftw.gameclient.maps.Map;
+import com.jabyftw.gameclient.util.Constants;
 
 /**
  * Created by Isa on 03/01/2015.
  */
-public abstract class AbstractDamageableEntity extends AbstractBox2dEntity implements Damageable {
+public abstract class AbstractDamageableEntity extends AbstractBox2dEntity implements DamageableEntity {
 
-    // Static defaults
-    protected static final float DEFAULT_INVINCIBILITY_TIME_AFTER_DAMAGE = 0.125f, DEFAULT_INVINCIBILITY_TIME_AFTER_SPAWN = 2f;
+    protected float MAXIMUM_HEALTH = Constants.Gameplay.Entities.DEFAULT_HEALTH;
+    protected float INVINCIBILITY_AFTER_SPAWN = Constants.Gameplay.Entities.DEFAULT_INVINCIBILITY_TIME_AFTER_SPAWN;
+    protected float INVINCIBILITY_AFTER_DAMAGE = Constants.Gameplay.Entities.DEFAULT_INVINCIBILITY_TIME_AFTER_DAMAGE;
 
-    // Defaults
-    protected final float MAXIMUM_HEALTH;
-
-    // variables
-    protected float health;
-    protected float invincibilityTime = DEFAULT_INVINCIBILITY_TIME_AFTER_SPAWN;
+    protected float currentHealth;
     protected float elapsedTimeSinceDamage = 0;
 
-    protected AbstractDamageableEntity(long entityId, EntityManager entityManager, Map map, float maximumHealth) {
-        super(entityId, entityManager, map);
-        this.MAXIMUM_HEALTH = maximumHealth;
-        this.health = MAXIMUM_HEALTH;
+    private float invincibilityTime;
+
+    protected AbstractDamageableEntity(long entityId, EntityManager entityManager, Map map, Vector2 spawnLocation) {
+        super(entityId, entityManager, map, spawnLocation);
+        this.currentHealth = MAXIMUM_HEALTH;
+        this.invincibilityTime = INVINCIBILITY_AFTER_SPAWN;
     }
 
     @Override
     public void update(float deltaTime) {
         elapsedTimeSinceDamage += deltaTime;
+
         if(invincibilityTime > 0)
             invincibilityTime -= deltaTime;
         if(invincibilityTime < 0)
             invincibilityTime = 0;
-        if(health <= 0)
+
+        if(currentHealth <= 0)
             doOnDeath();
+
         super.update(deltaTime);
     }
 
@@ -49,19 +53,36 @@ public abstract class AbstractDamageableEntity extends AbstractBox2dEntity imple
     }
 
     @Override
-    public void doDamage(float damage) {
-        if(isHittable()) {
-            health -= damage;
-            if(health > MAXIMUM_HEALTH)
-                health = MAXIMUM_HEALTH;
+    public boolean doDamage(float damage, boolean ignoreIfIsHittable) {
+        if(damage < 0)
+            throw new IllegalArgumentException("Can't deal negative damage.");
+
+        if(isHittable() || ignoreIfIsHittable) {
+            currentHealth -= damage;
+
+            //if(currentHealth > MAXIMUM_HEALTH)
+            //currentHealth = MAXIMUM_HEALTH;
+
             if(invincibilityTime < 0)
                 invincibilityTime = 0;
-            invincibilityTime += DEFAULT_INVINCIBILITY_TIME_AFTER_DAMAGE;
+
+            invincibilityTime = INVINCIBILITY_AFTER_DAMAGE;
             elapsedTimeSinceDamage = 0;
+
+            return true;
         }
+
+        return false;
     }
 
-    public Color getDamageFilterColor() {
+    @Override
+    public void doHeal(float amount) {
+        if(amount < 0)
+            throw new IllegalArgumentException("Can't heal negative amounts.");
+        currentHealth += amount;
+    }
+
+    protected Color getDamageFilterColor() {
         return baseColor.cpy().lerp(Color.RED, 1 - Math.min(1, elapsedTimeSinceDamage / invincibilityTime));
     }
 
@@ -72,12 +93,14 @@ public abstract class AbstractDamageableEntity extends AbstractBox2dEntity imple
 
     @Override
     public void setInvincible(float timeInvincible) {
+        if(timeInvincible < 0)
+            throw new IllegalArgumentException("Can't set entity invincible for negative time.");
         this.invincibilityTime = timeInvincible;
     }
 
     @Override
     public float getRemainingHealth() {
-        return health;
+        return currentHealth;
     }
 
     @Override

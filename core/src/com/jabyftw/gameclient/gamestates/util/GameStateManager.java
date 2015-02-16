@@ -4,7 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
 import com.jabyftw.gameclient.Main;
-import com.jabyftw.gameclient.util.Drawable;
+import com.jabyftw.gameclient.util.GameDrawable;
+import com.jabyftw.gameclient.util.HudDrawable;
 import com.jabyftw.gameclient.util.Tickable;
 
 import java.util.Stack;
@@ -12,10 +13,10 @@ import java.util.Stack;
 /**
  * Created by Isa on 01/01/2015.
  */
-public class GameStateManager implements Tickable, Drawable, Disposable {
+public class GameStateManager implements Tickable, GameDrawable, HudDrawable, Disposable {
 
-    private GameState mainGameState;
     private final Stack<PseudoGameState> pseudoGameState = new Stack<PseudoGameState>();
+    private GameState mainGameState;
 
     public GameStateManager(GameState firstGameState) {
         setGameState(firstGameState);
@@ -67,28 +68,24 @@ public class GameStateManager implements Tickable, Drawable, Disposable {
     }
 
     @Override
-    public void draw(SpriteBatch batch) {
+    public void drawGame(SpriteBatch batch) {
         if(!pseudoGameState.empty())
-            pseudoGameState.peek().draw(batch);
+            pseudoGameState.peek().drawGame(batch);
         else
-            mainGameState.draw(batch);
+            mainGameState.drawGame(batch);
+    }
+
+    @Override
+    public void drawHUD(SpriteBatch batch) {
+        if(!pseudoGameState.empty())
+            pseudoGameState.peek().drawHUD(batch);
+        else
+            mainGameState.drawHUD(batch);
     }
 
     @Override
     public void dispose() {
         if(!pseudoGameState.empty()) pseudoGameState.pop().dispose();
         mainGameState.dispose();
-    }
-
-    public GameState getMainGameState() {
-        return mainGameState;
-    }
-
-    public PseudoGameState getPseudoGameState() {
-        return !pseudoGameState.empty() ? pseudoGameState.peek() : null;
-    }
-
-    public GameState getCurrentGameState() {
-        return !pseudoGameState.empty() ? pseudoGameState.peek() : mainGameState;
     }
 }

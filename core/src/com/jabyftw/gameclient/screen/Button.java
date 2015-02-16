@@ -6,17 +6,18 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Disposable;
 import com.jabyftw.gameclient.Main;
-import com.jabyftw.gameclient.util.Drawable;
+import com.jabyftw.gameclient.util.Constants;
+import com.jabyftw.gameclient.util.HudDrawable;
 import com.jabyftw.gameclient.util.Util;
 
 /**
  * Created by Rafael on 07/12/2014.
  */
-public abstract class Button implements Drawable, Disposable {
+public abstract class Button implements HudDrawable, Disposable {
 
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final String text;
     private final boolean acceptsSideKeys;
-    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     private String displayText;
     private BitmapFont font = null;
@@ -37,12 +38,12 @@ public abstract class Button implements Drawable, Disposable {
         this.font = font;
     }
 
-    public Button(BitmapFont font, String text, boolean acceptsSideKeys, Color color) {
+    Button(BitmapFont font, String text, boolean acceptsSideKeys, Color color) {
         this(font, text, acceptsSideKeys);
         this.color = color;
     }
 
-    public Button(BitmapFont font, String text, boolean acceptsSideKeys, Color color, float x, float y) {
+    Button(BitmapFont font, String text, boolean acceptsSideKeys, Color color, float x, float y) {
         this(font, text, acceptsSideKeys, color);
         this.x = x;
         this.y = y;
@@ -51,12 +52,12 @@ public abstract class Button implements Drawable, Disposable {
     public abstract void update(float deltaTime, boolean isSelected);
 
     @Override
-    public void draw(SpriteBatch batch) {
+    public void drawHUD(SpriteBatch batch) {
         float displayX = x - (font.getSpaceWidth() * (displayText.length() / 2f)),
                 displayY = y;
         Util.drawText(font, batch, displayText, color, displayX, displayY);
 
-        if(Main.isDebugging) {
+        if(Constants.isDebugging) {
             shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
             {
                 shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
@@ -129,7 +130,7 @@ public abstract class Button implements Drawable, Disposable {
     public abstract void doButtonAction(boolean positiveAction, int timesPressed);
 
     public int getRepeatedlyTimesPressed() {
-        if(Main.getTicksPassed() - tickPressed >= (0.4f / Main.STEP))
+        if(Main.getTicksPassed() - tickPressed >= (0.4f / Constants.Gameplay.STEP))
             doTimesPressed(false);
         return timesPressed;
     }

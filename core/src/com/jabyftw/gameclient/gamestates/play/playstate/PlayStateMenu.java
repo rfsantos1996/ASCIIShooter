@@ -41,7 +41,7 @@ public class PlayStateMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new ChangeLayoutMenu(playState));
+                    Main.setCurrentGameState(new ChangeLayoutMenu(playState));
                 }
             });
         }
@@ -54,7 +54,7 @@ public class PlayStateMenu extends TabledGameState implements PseudoGameState {
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     playState.getMap().setShouldDispose(false);
-                    Main.getInstance().setCurrentGameState(new MapEditorState(playState.getMap()));
+                    Main.setCurrentGameState(new MapEditorState(playState.getMap()));
                 }
             });
             buttonTable.addButton(new Button(Resources.getLang(LangEnum.EXPORT_MAP), false) {
@@ -66,7 +66,7 @@ public class PlayStateMenu extends TabledGameState implements PseudoGameState {
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     playState.getMap().saveMap();
                     Main.getInstance().reloadMaps();
-                    Main.getInstance().setCurrentGameState(new StartMenu());
+                    Main.setCurrentGameState(new StartMenu());
                 }
             });
         }
@@ -78,7 +78,7 @@ public class PlayStateMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new ConfigMenu());
+                    Main.setCurrentGameState(new ConfigMenu());
                 }
             });
         }
@@ -90,7 +90,7 @@ public class PlayStateMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(null);
+                    Main.setCurrentGameState(null);
                 }
             });
         }
@@ -102,7 +102,7 @@ public class PlayStateMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new StartMenu());
+                    Main.setCurrentGameState(new StartMenu());
                 }
             });
         }

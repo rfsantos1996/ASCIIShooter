@@ -35,6 +35,7 @@ public class ChangeLayoutMenu extends TabledGameState implements PseudoGameState
 
         final PlayerEntity playerEntity = playState.getPlayerEntity();
         this.selectedLayout = playerEntity.getSelectedLayout();
+        fixSelectedLayout();
         {
             buttonTable.addButton(new Button(Resources.getLang(LangEnum.SELECT_LAYOUT_BUTTON), true) {
                 @Override
@@ -45,12 +46,7 @@ public class ChangeLayoutMenu extends TabledGameState implements PseudoGameState
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     selectedLayout += (positiveAction ? 1 : -1);
-
-                    Layout[] layouts = Main.getOnlineProfile().getLayouts();
-                    if(selectedLayout >= layouts.length)
-                        selectedLayout = 0;
-                    else if(selectedLayout < 0)
-                        selectedLayout = layouts.length - 1;
+                    fixSelectedLayout();
                 }
             });
         }
@@ -63,8 +59,9 @@ public class ChangeLayoutMenu extends TabledGameState implements PseudoGameState
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     playerEntity.setSelectedLayout(selectedLayout);
-                    playerEntity.doDamage(playerEntity.getMaximumHealth());
-                    Main.getInstance().setCurrentGameState(null);
+                    //playerEntity.doDamage(playerEntity.getMaximumHealth());
+                    Main.getOfflineProfile().setLastSelectedLayout(selectedLayout);
+                    Main.setCurrentGameState(null);
                 }
             });
         }
@@ -76,11 +73,22 @@ public class ChangeLayoutMenu extends TabledGameState implements PseudoGameState
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(null);
+                    Main.setCurrentGameState(null);
                 }
             });
         }
         super.create();
+    }
+
+    private Layout[] getLayouts() {
+        return Main.getOnlineProfile().getLayouts();
+    }
+
+    private void fixSelectedLayout() {
+        if(selectedLayout >= getLayouts().length)
+            selectedLayout = 0;
+        else if(selectedLayout < 0)
+            selectedLayout = getLayouts().length - 1;
     }
 
     @Override

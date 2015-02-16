@@ -1,22 +1,25 @@
 package com.jabyftw.gameclient.entity.util;
 
-import com.jabyftw.gameclient.entity.entities.EntityManager;
-import com.jabyftw.gameclient.entity.entities.EntityType;
+import com.jabyftw.gameclient.entity.EntityManager;
+import com.jabyftw.gameclient.entity.EntityType;
 import com.jabyftw.gameclient.maps.util.Locatable;
 import com.jabyftw.gameclient.maps.util.Mappable;
-import com.jabyftw.gameclient.util.Drawable;
+import com.jabyftw.gameclient.util.GameDrawable;
+import com.jabyftw.gameclient.util.HudDrawable;
 import com.jabyftw.gameclient.util.Tickable;
 
 /**
  * Created by Rafael on 12/12/2014.
  */
-public interface Entity extends Locatable, Mappable, Tickable, Drawable {
+public interface Entity extends Locatable, Mappable, Tickable, GameDrawable, HudDrawable {
 
-    EntityManager getEntityManager();
+    public EntityManager getEntityManager();
+
+    public EntityType getEntityType();
 
     public boolean isAlive();
 
-    public EntityType getEntityType();
+    public long getAgeTicks();
 
     public long getEntityID();
 

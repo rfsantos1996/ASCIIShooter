@@ -5,9 +5,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
-import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.maps.Converter;
-import com.jabyftw.gameclient.util.StringReplacer;
+import com.jabyftw.gameclient.util.Constants;
+import com.jabyftw.gameclient.util.tools.StringReplacer;
 import com.jabyftw.gameclient.util.Tickable;
 import com.jabyftw.gameclient.util.Util;
 import com.jabyftw.gameclient.util.files.Resources;
@@ -22,11 +22,11 @@ public class DisplayText implements Tickable, Disposable {
     private final BitmapFont font;
     private final float duration;
 
-    private String text;
-    private StringReplacer stringReplacer;
+    private final String text;
+    private final StringReplacer stringReplacer;
     private float elapsedDuration = 0;
 
-    public DisplayText(Entity holder, FontEnum font, String text, StringReplacer stringReplacer, float duration) {
+    private DisplayText(Entity holder, FontEnum font, String text, StringReplacer stringReplacer, float duration) {
         this.holder = holder;
         this.font = Resources.getBitmapFont(font);
         this.text = text;
@@ -44,11 +44,11 @@ public class DisplayText implements Tickable, Disposable {
     }
 
     public DisplayText(Entity holder, FontEnum font, String renderingText) {
-        this(holder, font, renderingText, Main.STEP * 2f);
+        this(holder, font, renderingText, Constants.Gameplay.STEP * 2f);
     }
 
     public DisplayText(Entity holder, String renderingText) {
-        this(holder, renderingText, null, Main.STEP * 2f);
+        this(holder, renderingText, null, Constants.Gameplay.STEP * 2f);
     }
 
     @Override

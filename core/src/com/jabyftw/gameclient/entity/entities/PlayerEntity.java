@@ -1,9 +1,9 @@
 package com.jabyftw.gameclient.entity.entities;
 
 import box2dLight.PointLight;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
@@ -11,22 +11,25 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.utils.Array;
+
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.entity.AbstractDamageableEntity;
-import com.jabyftw.gameclient.entity.util.Box2dConstants;
+import com.jabyftw.gameclient.entity.EntityManager;
+import com.jabyftw.gameclient.entity.EntityType;
 import com.jabyftw.gameclient.entity.util.DisplayText;
 import com.jabyftw.gameclient.entity.util.MapViewer;
 import com.jabyftw.gameclient.entity.weapon.Layout;
-import com.jabyftw.gameclient.entity.weapon.WeaponHolder;
 import com.jabyftw.gameclient.entity.weapon.WeaponsHolder;
+import com.jabyftw.gameclient.entity.weapon.util.WeaponHolder;
 import com.jabyftw.gameclient.maps.Block;
 import com.jabyftw.gameclient.maps.Converter;
 import com.jabyftw.gameclient.maps.Map;
-import com.jabyftw.gameclient.maps.util.BlockOpacity;
 import com.jabyftw.gameclient.maps.util.Material;
 import com.jabyftw.gameclient.screen.Animation;
+import com.jabyftw.gameclient.util.Constants;
 import com.jabyftw.gameclient.util.Util;
 import com.jabyftw.gameclient.util.files.Resources;
 import com.jabyftw.gameclient.util.files.enums.AnimationEnum;
@@ -37,40 +40,19 @@ import com.jabyftw.gameclient.util.files.enums.LangEnum;
  */
 public class PlayerEntity extends AbstractDamageableEntity implements MapViewer {
 
-    private static final Vector2 bodyRadius = Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(1 / 2f / 2f, 1 / 2f / 2f).scl(MathUtils.cosDeg(45), MathUtils.sinDeg(45)));
-
-    // Properties
-    public static final float DEFAULT_HEALTH = 10f;
-    private static final float INTERACT_DISTANCE = 2.5f;
-    private static final float VIEW_DISTANCE = 12;
-    private static final float BASE_SPEED = 2.3f, RUNNING_SPEED = 1.4f;
-    private static final float MAXIMUM_STAMINA = 3.6f, STAMINA_RECOVER_COOLDOWN = 3.2f;
-    private static final float MAX_ROTATION_SPEED = 360 * Main.STEP;
-
-    // Other stuff
     private final Animation animation;
-
-    // Weapons and layouts
-    private WeaponHolder weaponHolder;
-    private int selectedLayout = 0;
-
-    // DisplayText
     private DisplayText doInteraction = null;
-
-    // Variables
-    private float lastRun = STAMINA_RECOVER_COOLDOWN;
-    private float stamina = MAXIMUM_STAMINA;
-    private long tickCreated;
-
-    private Vector2 spawnLocation;
+    private WeaponHolder weaponHolder;
     private PointLight pointLight;
 
-    public PlayerEntity(long entityId, EntityManager entityManager, Map map, Vector2 location) {
-        super(entityId, entityManager, map, DEFAULT_HEALTH);
+    private float timeSinceLastRun = Constants.Gameplay.Player.STAMINA_RECOVER_COOLDOWN;
+    private float currentStamina = Constants.Gameplay.Player.MAXIMUM_STAMINA;
+    private int selectedLayout = 0;
+
+    public PlayerEntity(Long entityId, EntityManager entityManager, Map map, Vector2 spawnLocation) {
+        super(entityId, entityManager, map, spawnLocation);
         this.animation = Resources.getAnimation(AnimationEnum.PLAYER_ANIMATION);
-        this.tickCreated = Main.getTicksPassed();
-        this.setSelectedLayout(0);
-        this.spawnLocation = location;
+        setSelectedLayout(Main.getOfflineProfile().getLastSelectedLayout());
         doOnDeath();
     }
 
@@ -79,9 +61,6 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
         animation.update(deltaTime);
 
         {
-            // Do rotation
-            doRotation();
-
             // Control controls
             boolean isFiring = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
             boolean isAskingToReload = Gdx.input.isKeyJustPressed(Input.Keys.R);
@@ -101,40 +80,50 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
             // Do interaction
             doInteraction(isInteracting);
 
+            // Do rotation
+            doRotation();
+
             // Control speed
             doMovements(isRunning, isLeft, isRight, isForward, isBackward, isMoving, deltaTime);
 
             // Fire Weapon
-            doWeaponing(isRunning, isAskingToReload, isMoving, isFiring, isChangingWeaponNext, isChangingWeaponPast, deltaTime);
-            weaponHolder.update(deltaTime);
+            doWeaponing(deltaTime, isRunning, isAskingToReload, isMoving, isFiring, isChangingWeaponNext, isChangingWeaponPast);
         }
         super.update(deltaTime);
     }
 
     @Override
-    public void draw(SpriteBatch batch) {
+    public void drawGame(SpriteBatch batch) {
         Sprite frame = new Sprite(animation.getCurrentFrame());
         {
             frame.setOriginCenter();
+            frame.setColor(getDamageFilterColor());
             frame.setRotation((float) Math.toDegrees(box2dBody.getAngle()) - 90);
 
-            Vector2 position = box2dBody.getPosition().cpy().sub(bodyRadius).scl(Main.PIXELS_PER_METER);
+            Vector2 position = box2dBody.getPosition().cpy().sub(Constants.Gameplay.Entities.BODY_RADIUS).scl(Constants.Display.PIXELS_PER_METER);
             frame.setPosition(position.x, position.y);
-            frame.setScale(Map.BASE_TILE_SCALE);
+            frame.setScale(Constants.Display.BASE_TILE_SCALE);
 
             batch.begin();
             frame.draw(batch);
             batch.end();
         }
-        weaponHolder.draw(batch);
-        super.draw(batch);
+        weaponHolder.drawGame(batch);
+        super.drawGame(batch);
+    }
+
+    @Override
+    public void drawHUD(SpriteBatch batch) {
+        weaponHolder.drawHUD(batch);
+        super.drawHUD(batch);
     }
 
     @Override
     protected void doOnDeath() {
-        lastRun = STAMINA_RECOVER_COOLDOWN;
-        stamina = MAXIMUM_STAMINA;
-        health = MAXIMUM_HEALTH;
+        timeSinceLastRun = Constants.Gameplay.Player.STAMINA_RECOVER_COOLDOWN;
+        currentStamina = Constants.Gameplay.Player.MAXIMUM_STAMINA;
+        currentHealth = Constants.Gameplay.Entities.DEFAULT_HEALTH;
+
         if(weaponHolder != null) weaponHolder.resetStats();
         weaponHolder = new WeaponsHolder(this, Main.getOnlineProfile().getLayouts()[selectedLayout]);
 
@@ -142,12 +131,12 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
         spawnBox2dBody();
     }
 
-    private void doWeaponing(boolean isRunning, boolean isAskingToReload, boolean isMoving, boolean isFiring, boolean isChangingWeaponNext, boolean isChangingWeaponPast, float deltaTime) {
+    private void doWeaponing(float deltaTime, boolean isRunning, boolean isAskingToReload, boolean isMoving, boolean isFiring, boolean isChangingWeaponNext, boolean isChangingWeaponPast) {
         if(isRunning)
             weaponHolder.getSelectedWeapon().setElapsedReloadTime(0);
         else if(isAskingToReload)
             weaponHolder.getSelectedWeapon().askToReload();
-        else if(isFiring && (Main.getTicksPassed() - tickCreated) >= 10)
+        else if(isFiring && getAgeTicks() >= 10)
             weaponHolder.getSelectedWeapon().fire(deltaTime, this, box2dBody.getPosition(), (float) Math.toDegrees(box2dBody.getAngle()));
         else if(isMoving)
             weaponHolder.getSelectedWeapon().setReloadTimeMultiplier(0.75f);
@@ -157,6 +146,7 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
         // Change weapons with E/Q
         if(isChangingWeaponNext || isChangingWeaponPast)
             weaponHolder.selectWeaponType(isChangingWeaponNext);
+        weaponHolder.update(deltaTime);
     }
 
     private void doMovements(boolean isRunning, boolean isLeft, boolean isRight, boolean isForward, boolean isBackward, boolean isMoving, float deltaTime) {
@@ -164,18 +154,18 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
                 isVertical = (isForward && !isBackward) || (!isForward && isBackward);
 
         if(isRunning) {
-            lastRun = 0;
-            stamina -= deltaTime;
-            if(stamina < 0) stamina = 0;
+            timeSinceLastRun = 0;
+            currentStamina -= deltaTime;
+            if(currentStamina < 0) currentStamina = 0;
         } else {
-            lastRun += deltaTime;
-            if(lastRun >= STAMINA_RECOVER_COOLDOWN && stamina < MAXIMUM_STAMINA)
-                stamina += Math.min((isMoving ? 0.6f : 1) * deltaTime, MAXIMUM_STAMINA - stamina);
+            timeSinceLastRun += deltaTime;
+            if(timeSinceLastRun >= Constants.Gameplay.Player.STAMINA_RECOVER_COOLDOWN && currentStamina < Constants.Gameplay.Player.MAXIMUM_STAMINA)
+                currentStamina += Math.min((isMoving ? 0.6f : 1) * deltaTime, Constants.Gameplay.Player.MAXIMUM_STAMINA - currentStamina);
         }
 
-        isRunning = isRunning && stamina > 0;
+        isRunning = isRunning && currentStamina > 0;
         float speedMultiplierByWorld = map.getBlockFrom(Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition())).getMaterial().getSpeedMultiplier();
-        float playerSpeed = (BASE_SPEED + (isRunning ? RUNNING_SPEED : 0)) * speedMultiplierByWorld;
+        float playerSpeed = (Constants.Gameplay.Player.BASE_SPEED + (isRunning ? Constants.Gameplay.Player.RUNNING_SPEED : 0)) * speedMultiplierByWorld;
 
         {
             // Do movements
@@ -212,10 +202,11 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
         if(doInteraction != null) doInteraction.dispose();
 
         Array<Block> blockArray = map.filterBlocksByMaterial(
-                map.getBlocksNear(Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition()), INTERACT_DISTANCE),
+                map.getBlocksNear(Converter.BOX2D_COORDINATES.toWorldCoordinates(box2dBody.getPosition()), Constants.Gameplay.Player.INTERACT_DISTANCE),
                 Material.CLOSED_DOOR,
                 Material.OPEN_DOOR
         );
+
         if(blockArray.size > 0) {
             doInteraction = new DisplayText(this, Resources.getLang(LangEnum.DO_INTERACTION));
 
@@ -235,15 +226,16 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
         float deltaRotation = getDeltaRotation(getMouseDeltaRotation(), angle);
 
         if(deltaRotation <= 0)
-            angle += Math.max(-MAX_ROTATION_SPEED, deltaRotation);
+            angle += Math.max(-Constants.Gameplay.Player.MAX_ROTATION_SPEED, deltaRotation);
         else
-            angle += Math.min(MAX_ROTATION_SPEED, deltaRotation);
+            angle += Math.min(Constants.Gameplay.Player.MAX_ROTATION_SPEED, deltaRotation);
 
         box2dBody.setTransform(box2dBody.getPosition(), (float) Math.toRadians((angle + 360) % 360));
     }
 
     @Override
     public void spawnBox2dBody() {
+        Vector2 bodyRadius = Constants.Gameplay.Entities.BODY_RADIUS;
         {
             CircleShape circleShape = new CircleShape();
             circleShape.setRadius(bodyRadius.x + bodyRadius.y);
@@ -258,30 +250,35 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
             fixtureDef.restitution = 0;
             fixtureDef.friction = 0.2f;
             fixtureDef.shape = circleShape;
-            fixtureDef.filter.categoryBits = Box2dConstants.BIT_PLAYER;
-            fixtureDef.filter.maskBits = Box2dConstants.BIT_BULLET | Box2dConstants.BIT_PLAYER | Box2dConstants.BIT_BLOCK | Box2dConstants.BIT_WORLD_BOUNDS;
+            fixtureDef.filter.categoryBits = Constants.Box2dConstants.BIT_PLAYER_ENTITY;
+            fixtureDef.filter.maskBits = Constants.Box2dConstants.BIT_BULLET_ENTITY | Constants.Box2dConstants.BIT_PLAYER_ENTITY | Constants.Box2dConstants.BIT_SOLID_BLOCK
+                    | Constants.Box2dConstants.BIT_WORLD_BOUNDS | Constants.Box2dConstants.BIT_ENEMY_ENTITY;
 
             createBox2dBody(map.getWorld(), bodyDef, fixtureDef);
 
             circleShape.dispose();
         }
-        pointLight = Util.createPointLight(map.getRayHandler(), 256, new Color(1, 1, 1, 0.75f), VIEW_DISTANCE, box2dBody);
+        pointLight = Util.createPointLight(map.getRayHandler(), 256, Constants.Gameplay.Player.PLAYER_LIGHT_COLOR, Constants.Gameplay.Player.VIEW_DISTANCE, box2dBody);
     }
 
     @Override
     public void removeBox2dBody() {
         if(pointLight != null) {
-            pointLight.dispose();
             pointLight.remove();
             pointLight = null;
         }
         super.removeBox2dBody();
     }
 
+    @Override
+    public void contactWith(Contact contact, Object objectContactedWith) {
+    }
+
     public void setSelectedLayout(int selectedLayout) {
         this.selectedLayout = selectedLayout;
 
         Layout[] layouts = Main.getOnlineProfile().getLayouts();
+
         if(this.selectedLayout >= layouts.length)
             this.selectedLayout = 0;
         else if(this.selectedLayout < 0)
@@ -291,18 +288,6 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
     public int getSelectedLayout() {
         return selectedLayout;
     }
-
-    /*private void move(float x, float y) {
-        location.entityMove(this, x, y);
-        box2dBody.getPosition().set(location.toBox2dVector(false));
-    }
-
-    private void move(MapLocation location) {
-        if(location.isValid() && location.getBlock().setObjectOnGround(this)) {
-            this.location.getBlock().setObjectOnGround(null);
-            this.location.set(location);
-        }
-    }*/
 
     private float getMouseDeltaRotation() {
         Vector3 unprojectionFromMouse = map.getBox2dCamera().unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
@@ -341,10 +326,10 @@ public class PlayerEntity extends AbstractDamageableEntity implements MapViewer 
     }
 
     @Override
-    public BlockOpacity getOpacityForBlock(Block block) {
-        if(block.getBox2dBody().getPosition().dst2(box2dBody.getPosition()) <= Util.square(VIEW_DISTANCE))
-            return BlockOpacity.FULLY_VISIBLE;
-        return BlockOpacity.UNDISCOVERED;
+    public float getOpacityForBlock(Block block) {
+        if(block.getBox2dBody().getPosition().dst2(box2dBody.getPosition()) <= Util.square(Constants.Gameplay.Player.VIEW_DISTANCE))
+            return 1;
+        return 0;
     }
 
     @Override

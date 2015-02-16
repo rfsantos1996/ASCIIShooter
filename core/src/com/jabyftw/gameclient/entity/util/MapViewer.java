@@ -1,7 +1,6 @@
 package com.jabyftw.gameclient.entity.util;
 
 import com.jabyftw.gameclient.maps.Block;
-import com.jabyftw.gameclient.maps.util.BlockOpacity;
 import com.jabyftw.gameclient.maps.util.Locatable;
 
 /**
@@ -9,6 +8,6 @@ import com.jabyftw.gameclient.maps.util.Locatable;
  */
 public interface MapViewer extends Locatable {
 
-    public BlockOpacity getOpacityForBlock(Block block);
+    public float getOpacityForBlock(Block block);
 
 }

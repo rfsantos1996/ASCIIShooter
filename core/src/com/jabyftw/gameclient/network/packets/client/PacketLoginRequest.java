@@ -3,17 +3,18 @@ package com.jabyftw.gameclient.network.packets.client;
 import com.badlogic.gdx.utils.Base64Coder;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonValue;
-import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.network.PacketType;
 import com.jabyftw.gameclient.network.util.Packet;
+import com.jabyftw.gameclient.util.Constants;
 
 /**
  * Created by Rafael on 13/01/2015.
  */
 public class PacketLoginRequest extends Packet {
 
-    private float gameVersion = Main.GAME_VERSION;
-    private String username, password;
+    private float gameVersion = Constants.GAME_VERSION;
+    String username;
+    String password;
 
     public PacketLoginRequest(String username, String password) {
         super(PacketType.LOGIN_REQUEST);
@@ -22,7 +23,15 @@ public class PacketLoginRequest extends Packet {
     }
 
     public PacketLoginRequest() {
-        super(PacketType.LOGIN_REQUEST);
+        this(PacketType.LOGIN_REQUEST);
+    }
+
+    protected PacketLoginRequest(PacketType packetType) {
+        super(packetType);
+    }
+
+    public float getGameVersion() {
+        return gameVersion;
     }
 
     public String getUsername() {

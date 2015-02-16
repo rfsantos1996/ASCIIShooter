@@ -7,9 +7,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Array;
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.screen.Animation;
+import com.jabyftw.gameclient.util.Constants;
 import com.jabyftw.gameclient.util.files.enums.*;
 
 import java.io.IOException;
@@ -23,14 +25,12 @@ import java.util.Set;
  */
 public abstract class Resources {
 
-    public static final String LANG_VERSION_STRING = "LangVersion";
-
-    private static HashMap<TextureEnum, Texture> textureMap = new HashMap<TextureEnum, Texture>();
-    private static HashMap<AnimationEnum, Animation> animationMap = new HashMap<AnimationEnum, Animation>();
-    private static HashMap<FontEnum, BitmapFont> bitmapFontMap = new HashMap<FontEnum, BitmapFont>();
-    private static HashMap<LangEnum, String> languageMap = new HashMap<LangEnum, String>();
-    private static HashMap<FilesEnum, FileHandle> commonFilesMap = new HashMap<FilesEnum, FileHandle>();
-    private static HashMap<String, FileHandle> mapFiles = new HashMap<String, FileHandle>();
+    private static final HashMap<TextureEnum, Texture> textureMap = new HashMap<TextureEnum, Texture>();
+    private static final HashMap<AnimationEnum, Animation> animationMap = new HashMap<AnimationEnum, Animation>();
+    private static final HashMap<FontEnum, BitmapFont> bitmapFontMap = new HashMap<FontEnum, BitmapFont>();
+    private static final HashMap<LangEnum, String> languageMap = new HashMap<LangEnum, String>();
+    private static final HashMap<FilesEnum, FileHandle> commonFilesMap = new HashMap<FilesEnum, FileHandle>();
+    private static final HashMap<String, FileHandle> mapFiles = new HashMap<String, FileHandle>();
 
     public static Animation getAnimation(AnimationEnum animationEnum) {
         return new Animation(animationMap.get(animationEnum));
@@ -49,7 +49,7 @@ public abstract class Resources {
         }
     }
 
-    public static Texture getTexture(TextureEnum textureEnum) {
+    private static Texture getTexture(TextureEnum textureEnum) {
         return textureMap.get(textureEnum);
     }
 
@@ -82,40 +82,50 @@ public abstract class Resources {
         return languageMap.get(langPath);
     }
 
+    // TODO: movie 'american beauty'
+
     @SuppressWarnings({"ConstantConditions", "PointlessBooleanExpression"})
-    public static void loadLanguage(Language selected) {
+    public static void loadLanguage(Language selected, boolean loadAll) {
         if(selected != Main.getOfflineProfile().getSelectedLanguage()) {
             Main.getOfflineProfile().setSelectedLanguage(selected);
             languageMap.clear();
         }
 
-        Properties properties = new Properties();
-        FileHandle langFile = Resources.getFileHandle(FilesEnum.LANGUAGE_DIRECTORY).child(selected.getFilePath());
+        Array<String> languagesLoaded = new Array<String>();
         try {
+            for(Language language : (loadAll ? Language.values() : new Language[]{selected})) {
+                Properties properties = new Properties();
+                FileHandle languageFile = Resources.getFileHandle(FilesEnum.LANGUAGE_DIRECTORY).child(language.getFilePath());
 
-            if(langFile.exists()) {
-                properties.load(langFile.read());
-                if(LangEnum.LANG_VERSION < 0 || Integer.parseInt(properties.getProperty(LANG_VERSION_STRING)) != LangEnum.LANG_VERSION)
-                    properties.clear(); // Recreate lang, lets not keep old values
-            }
-
-            for(LangEnum strings : LangEnum.values()) {
-                String property = properties.getProperty(strings.name().toLowerCase());
-                String defaultValue = strings.getDefaultValue(selected);
-                if(property != null && !strings.isAlwaysUpdatedOnFile()) {
-                    languageMap.put(strings, property);
-                } else {
-                    properties.put(strings.name().toLowerCase(), defaultValue);
-                    languageMap.put(strings, defaultValue);
+                if(languageFile.exists()) {
+                    properties.load(languageFile.reader("UTF-8"));
+                    if(Constants.LANGUAGE_VERSION < 0 || Integer.parseInt(properties.getProperty(Constants.Util.LANG_VERSION_STRING)) != Constants.LANGUAGE_VERSION)
+                        properties.clear(); // Recreate lang, lets not keep old values
                 }
+
+                for(LangEnum langEnum : LangEnum.values()) {
+
+                    String string = properties.getProperty(langEnum.name().toLowerCase());
+                    String defaultString = langEnum.getDefaultValue(language);
+
+                    if(string == null || langEnum.isAlwaysUpdatedOnFile()) { // If shouldn't update every time, don't update
+                        properties.put(langEnum.name().toLowerCase(), defaultString);
+                        string = defaultString;
+                    }
+                    if(language == selected) // Just load to map if it is the selected language
+                        languageMap.put(langEnum, string);
+                }
+
+                properties.setProperty(Constants.Util.LANG_VERSION_STRING, String.valueOf(Constants.LANGUAGE_VERSION));
+                properties.store(languageFile.writer(false, "UTF-8"), "Comment? Why would I need that? Here's a random number: " + MathUtils.random());
+
+                languagesLoaded.add(language.getDisplayName());
             }
-
-            properties.setProperty(LANG_VERSION_STRING, String.valueOf(LangEnum.LANG_VERSION));
-            properties.store(langFile.writer(false), "Comment? Why would I need that? Here's a random number: " + MathUtils.random());
-
         } catch(IOException e) {
             e.printStackTrace();
         }
+
+        System.out.println("Resources.loadLanguage { languages = " + Arrays.toString(languagesLoaded.toArray()) + " }");
     }
 
     public static void reloadMapsFromDirectory(FileHandle directory) {
@@ -173,7 +183,7 @@ public abstract class Resources {
     public enum Language {
 
         ENGLISH("English", "/english.properties"),
-        PORTUGUESE_BRAZIL("Portugues (BR)", "/portuguese-br.properties");
+        PORTUGUESE_BRAZIL("Português (BR)", "/portuguese-br.properties");
 
         private final String displayName, filePath;
 

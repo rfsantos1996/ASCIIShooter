@@ -38,7 +38,7 @@ public class PlayOptionsMenu extends TabledGameState implements PseudoGameState 
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new FindMatchMenu());
+                    Main.setCurrentGameState(new FindMatchMenu());
                 }
             });
             buttonTable.addButton(new Button(Resources.getLang(LangEnum.CREATE_MATCH_BUTTON), true) {
@@ -48,7 +48,7 @@ public class PlayOptionsMenu extends TabledGameState implements PseudoGameState 
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new CreateMatchMenu());
+                    Main.setCurrentGameState(new CreateMatchMenu());
                 }
             });
             buttonTable.addButton(new Button(Resources.getLang(LangEnum.CHANGE_LAYOUTS_BUTTON), true) {
@@ -58,7 +58,7 @@ public class PlayOptionsMenu extends TabledGameState implements PseudoGameState 
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new CreateLayoutMenu());
+                    Main.setCurrentGameState(new CreateLayoutMenu());
                 }
             });
         }
@@ -70,7 +70,7 @@ public class PlayOptionsMenu extends TabledGameState implements PseudoGameState 
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(null);
+                    Main.setCurrentGameState(null);
                 }
             });
         }

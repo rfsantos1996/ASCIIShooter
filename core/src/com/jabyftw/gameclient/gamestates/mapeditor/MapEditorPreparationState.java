@@ -12,6 +12,7 @@ import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.screen.Button;
 import com.jabyftw.gameclient.screen.ButtonTable;
 import com.jabyftw.gameclient.screen.TextInputButton;
+import com.jabyftw.gameclient.util.Constants;
 import com.jabyftw.gameclient.util.Util;
 import com.jabyftw.gameclient.util.files.Resources;
 import com.jabyftw.gameclient.util.files.enums.FontEnum;
@@ -22,13 +23,13 @@ import com.jabyftw.gameclient.util.files.enums.LangEnum;
  */
 public class MapEditorPreparationState extends TabledGameState {
 
-    public static final Vector2 minimum = Converter.SCREEN_COORDINATES.toWorldCoordinates(new Vector2(Main.V_WIDTH, Main.V_HEIGHT)),
+    public static final Vector2 minimum = Converter.SCREEN_COORDINATES.toWorldCoordinates(new Vector2(Constants.Display.V_WIDTH, Constants.Display.V_HEIGHT)),
             maximum = new Vector2(minimum).scl(25f);
 
     private TextInputButton mapNameInput;
-    private Vector2 currentVector = new Vector2();
+    private final Vector2 currentVector = new Vector2();
 
-    protected Map map;
+    private Map map;
 
     public MapEditorPreparationState() {
         super(false);
@@ -54,7 +55,7 @@ public class MapEditorPreparationState extends TabledGameState {
                 public void update(float deltaTime, boolean isSelected) {
                     setDisplayText(
                             getText().replaceAll("%width%", String.valueOf(map.getWidth()))
-                                    .replaceAll("%ratio%", Util.formatDecimal(currentVector.x / Main.V_WIDTH, 1))
+                                    .replaceAll("%ratio%", Util.formatDecimal(currentVector.x / Constants.Display.V_WIDTH, 1))
                     );
                 }
 
@@ -73,7 +74,7 @@ public class MapEditorPreparationState extends TabledGameState {
                 public void update(float deltaTime, boolean isSelected) {
                     setDisplayText(
                             getText().replaceAll("%height%", String.valueOf(map.getHeight()))
-                                    .replaceAll("%ratio%", Util.formatDecimal(currentVector.y / Main.V_HEIGHT, 1))
+                                    .replaceAll("%ratio%", Util.formatDecimal(currentVector.y / Constants.Display.V_HEIGHT, 1))
                     );
                 }
 
@@ -89,8 +90,8 @@ public class MapEditorPreparationState extends TabledGameState {
         {
             mapNameInput = new TextInputButton(Resources.getBitmapFont(FontEnum.PRESS_START_14), Resources.getLang(LangEnum.DISPLAY_NAME_FOR_MAP)) {
                 @Override
-                public void update(float deltaTime, boolean isSelected) {
-                    super.update(deltaTime, isSelected);
+                public void setInput() {
+                    this.pattern = Constants.Util.LETTERS_AND_NUMBERS_WITH_SPACE;
                 }
             };
             buttonTable.addButton(mapNameInput);
@@ -108,7 +109,7 @@ public class MapEditorPreparationState extends TabledGameState {
                         map.setDisplayName(mapNameInput.getInput());
                         map.createBaseBlock();
                         map.setShouldDispose(false);
-                        Main.getInstance().setCurrentGameState(new MapEditorState(map));
+                        Main.setCurrentGameState(new MapEditorState(map));
                     } else {
                         setDisplayText(getText() + Resources.getLang(LangEnum.FAILED_ENTER_BUTTON).replaceAll("%fail%", valid.get(0)));
                     }
@@ -123,7 +124,7 @@ public class MapEditorPreparationState extends TabledGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new StartMenu());
+                    Main.setCurrentGameState(new StartMenu());
                 }
             });
         }

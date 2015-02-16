@@ -41,7 +41,7 @@ public class MapEditorMenu extends TabledGameState implements PseudoGameState {
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     previousState.getMap().setShouldDispose(false);
-                    Main.getInstance().setCurrentGameState(new PlayState(previousState.getMap(), true));
+                    Main.setCurrentGameState(new PlayState(previousState.getMap(), true));
                 }
             });
         }
@@ -53,7 +53,7 @@ public class MapEditorMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new ConfigMenu());
+                    Main.setCurrentGameState(new ConfigMenu());
                 }
             });
         }
@@ -65,7 +65,7 @@ public class MapEditorMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(null);
+                    Main.setCurrentGameState(null);
                 }
             });
         }
@@ -77,7 +77,7 @@ public class MapEditorMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new StartMenu());
+                    Main.setCurrentGameState(new StartMenu());
                 }
             });
         }

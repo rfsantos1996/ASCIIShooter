@@ -5,39 +5,40 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
-import com.jabyftw.gameclient.entity.util.Box2dConstants;
+import com.jabyftw.gameclient.entity.EntityType;
+import com.jabyftw.gameclient.entity.util.Contactable;
 import com.jabyftw.gameclient.entity.util.Entity;
 import com.jabyftw.gameclient.entity.util.MapViewer;
-import com.jabyftw.gameclient.maps.util.BlockOpacity;
 import com.jabyftw.gameclient.maps.util.Mappable;
 import com.jabyftw.gameclient.maps.util.Material;
 import com.jabyftw.gameclient.screen.Animation;
+import com.jabyftw.gameclient.util.Constants;
 import com.jabyftw.gameclient.util.Tickable;
 
 /**
  * Created by Rafael on 15/01/2015.
  */
-public class Block implements Tickable, Mappable {
+public class Block implements Tickable, Contactable, Mappable {
 
-    private Map map;
+    private final Map map;
     private Material material;
     private Animation materialAnimation;
 
-    private Body box2dBody;
+    private final Body box2dBody;
 
-    protected static Block createBlock(BodyDef bodyDef, FixtureDef fixtureDef, Map map, int x, int y, Material material) {
-        return new Block(bodyDef, fixtureDef, map, x, y, material);
+    static Block createBlock(BodyDef bodyDef, FixtureDef fixtureDef, Map map, int x, int y) {
+        return new Block(bodyDef, fixtureDef, map, x, y);
     }
 
-    private Block(BodyDef bodyDef, FixtureDef fixtureDef, Map map, int x, int y, Material material) {
+    private Block(BodyDef bodyDef, FixtureDef fixtureDef, Map map, int x, int y) {
         this.map = map;
         World world = map.getWorld();
 
         bodyDef.position.set(Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(x, y)));
         box2dBody = world.createBody(bodyDef);
-        box2dBody.createFixture(fixtureDef);
+        box2dBody.createFixture(fixtureDef).setUserData(this);
 
-        setMaterial(material);
+        setMaterial(Material.AIR);
     }
 
     @Override
@@ -46,11 +47,11 @@ public class Block implements Tickable, Mappable {
     }
 
     public void draw(SpriteBatch batch, MapViewer viewer) {
-        BlockOpacity blockOpacity = viewer.getOpacityForBlock(this);
-        if(blockOpacity.getOpacity() <= 0) return;
+        float opacity = viewer.getOpacityForBlock(this);
+        if(opacity <= 0) return;
 
         {
-            batch.setColor(new Color(1, 1, 1, blockOpacity.getOpacity()));
+            batch.setColor(new Color(1, 1, 1, opacity));
 
             Vector2 drawPosition = Converter.BOX2D_COORDINATES.toScreenCoordinates(box2dBody.getPosition());
             batch.draw(
@@ -59,10 +60,10 @@ public class Block implements Tickable, Mappable {
                     drawPosition.y,
                     0,
                     0,
-                    Map.TILE_WIDTH,
-                    Map.TILE_HEIGHT,
-                    Map.BASE_TILE_SCALE,
-                    Map.BASE_TILE_SCALE,
+                    Constants.Display.TILE_WIDTH,
+                    Constants.Display.TILE_HEIGHT,
+                    Constants.Display.BASE_TILE_SCALE,
+                    Constants.Display.BASE_TILE_SCALE,
                     0
             );
         }
@@ -81,13 +82,19 @@ public class Block implements Tickable, Mappable {
         return box2dBody;
     }
 
+    @Override
+    public void contactWith(Contact contact, Object objectContactedWith) {
+        if(objectContactedWith instanceof Entity && ((Entity) objectContactedWith).getEntityType() == EntityType.BULLET)
+            ((Entity) objectContactedWith).remove(false);
+    }
+
     public void setMaterial(Material material) {
         this.material = material;
         this.materialAnimation = material.getAnimation();
         for(Fixture fixture : box2dBody.getFixtureList()) {
             {
                 Filter fixtureFilter = fixture.getFilterData();
-                fixtureFilter.categoryBits = material.isSolid() ? Box2dConstants.BIT_BLOCK : Box2dConstants.BIT_EMPTY_BLOCK;
+                fixtureFilter.categoryBits = material.isSolid() ? Constants.Box2dConstants.BIT_SOLID_BLOCK : Constants.Box2dConstants.BIT_EMPTY;
                 fixture.setFilterData(fixtureFilter);
             }
         }

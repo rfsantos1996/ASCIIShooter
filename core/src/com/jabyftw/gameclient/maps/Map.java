@@ -12,33 +12,32 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.*;
 import com.jabyftw.gameclient.Main;
-import com.jabyftw.gameclient.entity.util.Box2dConstants;
 import com.jabyftw.gameclient.entity.util.MapViewer;
 import com.jabyftw.gameclient.gamestates.mapeditor.MapEditorPreparationState;
-import com.jabyftw.gameclient.maps.util.BlockOpacity;
 import com.jabyftw.gameclient.maps.util.BlockStorage;
 import com.jabyftw.gameclient.maps.util.Material;
 import com.jabyftw.gameclient.maps.util.MyContactListener;
 import com.jabyftw.gameclient.screen.MovableCamera;
-import com.jabyftw.gameclient.util.BlockAction;
-import com.jabyftw.gameclient.util.Drawable;
+import com.jabyftw.gameclient.util.Constants;
+import com.jabyftw.gameclient.util.GameDrawable;
 import com.jabyftw.gameclient.util.Tickable;
 import com.jabyftw.gameclient.util.Util;
 import com.jabyftw.gameclient.util.files.Resources;
 import com.jabyftw.gameclient.util.files.enums.FilesEnum;
+import com.jabyftw.gameclient.util.tools.BlockAction;
 
 import java.util.Iterator;
 
 /**
  * Created by Rafael on 15/01/2015.
  */
-public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
+public class Map implements GameDrawable, Tickable, Disposable, Json.Serializable {
 
     public static final MapViewer DEFAULT_MAP_VIEWER = new MapViewer() {
 
         @Override
-        public BlockOpacity getOpacityForBlock(Block block) {
-            return BlockOpacity.FULLY_VISIBLE;
+        public float getOpacityForBlock(Block block) {
+            return 1;
         }
 
         @Override
@@ -47,12 +46,9 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         }
     };
 
-    public static final int TILE_WIDTH = 8, TILE_HEIGHT = 8;
-    public static final float BASE_TILE_SCALE = 2.0f;
-
     public static ShapeRenderer shapeRenderer;
 
-    private String displayName = "test_map";
+    private String displayName = "no_name";
     private int width, height;
 
     private boolean useLightning = false;
@@ -61,31 +57,31 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
     private Block[][] blocks;
     private MapViewer viewer = DEFAULT_MAP_VIEWER;
 
-    private World world;
-    private MovableCamera box2dCamera;
+    private final MovableCamera box2dCamera;
     private Box2DDebugRenderer debugRenderer;
     private RayHandler rayHandler;
+    private World world;
 
     public Map() {
         world = new World(new Vector2(0, 0), true);
         world.setContactListener(new MyContactListener());
         {
-            Vector2 box2dCoordinates = Converter.SCREEN_COORDINATES.toBox2dCoordinates(new Vector2(Main.V_WIDTH, Main.V_HEIGHT));
+            Vector2 box2dCoordinates = Converter.SCREEN_COORDINATES.toBox2dCoordinates(new Vector2(Constants.Display.V_WIDTH, Constants.Display.V_HEIGHT));
 
             box2dCamera = new MovableCamera();
             box2dCamera.setToOrtho(false, box2dCoordinates.x, box2dCoordinates.y);
         }
-        debugRenderer = new Box2DDebugRenderer(true, true, true, true, true, true);
+        debugRenderer = new Box2DDebugRenderer(true, true, true, false, true, true);
         rayHandler = new RayHandler(world);
 
         rayHandler.setBlur(true);
         rayHandler.setCulling(true);
         rayHandler.setShadows(true);
 
-        /* NUMBER OF RAYS: 'between 5 and 128 has the best outcome' */
+        /* Number of rays: 'between 5 and 128 has the best outcome' */
         Filter filter = new Filter();
-        filter.categoryBits = Box2dConstants.BIT_LIGHT;
-        filter.maskBits = Box2dConstants.BIT_BLOCK; // Stuff affected by lights
+        filter.categoryBits = Constants.Box2dConstants.BIT_LIGHT;
+        filter.maskBits = Constants.Box2dConstants.BIT_SOLID_BLOCK; // Stuff affected by lights
         PointLight.setContactFilter(filter);
 
         shapeRenderer = new ShapeRenderer();
@@ -93,7 +89,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
 
     @Override
     public void update(final float deltaTime) {
-        world.step(Main.STEP, 6, 2);
+        world.step(Constants.Gameplay.STEP, 6, 2);
         rayHandler.update();
 
         // You should update every block
@@ -105,7 +101,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
     }
 
     @Override
-    public void draw(final SpriteBatch batch) {
+    public void drawGame(final SpriteBatch batch) {
         MovableCamera gameCamera = Main.getInstance().getGameCamera();
         {
             box2dCamera.updatePosition(Converter.SCREEN_COORDINATES.toBox2dCoordinates(new Vector2(gameCamera.position.x, gameCamera.position.y)), false);
@@ -124,10 +120,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         {
             batch.setProjectionMatrix(box2dCamera.combined);
 
-            if(Main.isDebugging) debugRenderer.render(world, box2dCamera.combined);
-            rayHandler.setCombinedMatrix(box2dCamera.combined);
-            if(useLightning)
-                rayHandler.render();
+            if(Constants.isDebugging) debugRenderer.render(world, box2dCamera.combined);
 
             // Back to main camera
             batch.setProjectionMatrix(gameCamera.combined);
@@ -153,6 +146,14 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         shouldDispose = false;
     }
 
+    public void renderLightning(SpriteBatch batch) {
+        if(useLightning) {
+            batch.setProjectionMatrix(box2dCamera.combined);
+            rayHandler.setCombinedMatrix(box2dCamera.combined);
+            rayHandler.render();
+        }
+    }
+
     public void clearWorld() {
         rayHandler.dispose();
         rayHandler = new RayHandler(world);
@@ -174,7 +175,7 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         this.height = Math.min(Math.max(height, MathUtils.ceilPositive(MapEditorPreparationState.minimum.y)), MathUtils.ceilPositive(MapEditorPreparationState.maximum.y));
     }
 
-    public String getDisplayName() {
+    String getDisplayName() {
         return displayName;
     }
 
@@ -188,6 +189,14 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
 
     public void setViewer(MapViewer viewer) {
         this.viewer = viewer;
+    }
+
+    public Vector2 getMaximumBox2dBounds() {
+        return Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(width, height));
+    }
+
+    public Vector2 getMinimumBox2dBounds() {
+        return Converter.WORLD_COORDINATES.toBox2dCoordinates(new Vector2(0, 0));
     }
 
     public World getWorld() {
@@ -248,45 +257,18 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
         }
         for(int x = 0; x < blocks.length; x++) {
             for(int y = 0; y < blocks[x].length; y++) {
-                blocks[x][y] = Block.createBlock(bodyDef, fixtureDef, this, x, y, Material.AIR);
+                blocks[x][y] = Block.createBlock(bodyDef, fixtureDef, this, x, y);
             }
         }
         chainShape.dispose();
 
         // World coordinates
         Vector2 min = new Vector2(0, 0), max = new Vector2(width, height);
-        // Box2d
-        createWorldBounds(Converter.WORLD_COORDINATES.toBox2dCoordinates(min.cpy()), Converter.WORLD_COORDINATES.toBox2dCoordinates(max.cpy()));
         // Screen
         Main.getInstance().getGameCamera().setCameraBounds(Converter.WORLD_COORDINATES.toScreenCoordinates(min.cpy()), Converter.WORLD_COORDINATES.toScreenCoordinates(max.cpy()));
     }
 
-    private void createWorldBounds(Vector2 box2dMinCoordinates, Vector2 box2dMaxCoordinates) {
-        System.out.println("Map.createWorldBounds { min: " + box2dMinCoordinates.toString() + " max: " + box2dMaxCoordinates.toString() + " }");
-
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.fixedRotation = true;
-        bodyDef.type = BodyDef.BodyType.StaticBody;
-        Body body = world.createBody(bodyDef);
-
-        ChainShape chainShape = new ChainShape();
-        chainShape.createLoop(new Vector2[]{
-                new Vector2(box2dMinCoordinates.x, box2dMinCoordinates.y),
-                new Vector2(box2dMaxCoordinates.x, box2dMinCoordinates.y),
-                new Vector2(box2dMaxCoordinates.x, box2dMaxCoordinates.y),
-                new Vector2(box2dMinCoordinates.x, box2dMaxCoordinates.y)
-        });
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.filter.categoryBits = Box2dConstants.BIT_WORLD_BOUNDS;
-        fixtureDef.filter.maskBits = Box2dConstants.BIT_PLAYER | Box2dConstants.BIT_ENEMY | Box2dConstants.BIT_BULLET;
-        fixtureDef.shape = chainShape;
-        body.createFixture(fixtureDef);
-
-        chainShape.dispose();
-    }
-
-    public void doForVisibleBlocks(BlockAction blockAction) {
+    void doForVisibleBlocks(BlockAction blockAction) {
         Vector3 unprojectLower = box2dCamera.unproject(new Vector3(0, Gdx.graphics.getHeight(), 0)),
                 unprojectUpper = box2dCamera.unproject(new Vector3(Gdx.graphics.getWidth(), 0, 0));
 
@@ -351,10 +333,6 @@ public class Map implements Drawable, Tickable, Disposable, Json.Serializable {
 
     public MovableCamera getBox2dCamera() {
         return box2dCamera;
-    }
-
-    public boolean useLightning() {
-        return useLightning;
     }
 
     public void setUseLightning(boolean useLightning) {

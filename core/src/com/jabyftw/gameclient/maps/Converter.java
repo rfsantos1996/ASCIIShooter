@@ -1,7 +1,7 @@
 package com.jabyftw.gameclient.maps;
 
 import com.badlogic.gdx.math.Vector2;
-import com.jabyftw.gameclient.Main;
+import com.jabyftw.gameclient.util.Constants;
 
 /**
  * Created by Rafael on 21/01/2015
@@ -24,7 +24,7 @@ public enum Converter {
     BOX2D_COORDINATES {
         @Override
         public Vector2 toScreenCoordinates(Vector2 vector2) {
-            return vector2.scl(Main.PIXELS_PER_METER);
+            return vector2.scl(Constants.Display.PIXELS_PER_METER);
         }
 
         @Override
@@ -48,7 +48,7 @@ public enum Converter {
     SCREEN_COORDINATES {
         @Override
         public Vector2 toBox2dCoordinates(Vector2 vector2) {
-            return vector2.scl(1 / Main.PIXELS_PER_METER);
+            return vector2.scl(1 / Constants.Display.PIXELS_PER_METER);
         }
 
         @Override
@@ -57,8 +57,8 @@ public enum Converter {
         }
     };
 
-    public static final Vector2 TILE_SCALE = new Vector2(Map.TILE_WIDTH, Map.TILE_HEIGHT).scl(Map.BASE_TILE_SCALE);
-    public static final Vector2 BOX2D_TILE_SCALE = new Vector2(TILE_SCALE).scl(1 / Main.PIXELS_PER_METER);
+    private static final Vector2 TILE_SCALE = new Vector2(Constants.Display.TILE_WIDTH, Constants.Display.TILE_HEIGHT).scl(Constants.Display.BASE_TILE_SCALE);
+    private static final Vector2 BOX2D_TILE_SCALE = new Vector2(TILE_SCALE).scl(1 / Constants.Display.PIXELS_PER_METER);
 
     //public static final float TILE_SCALE_WIDTH = Map.BASE_TILE_SCALE * Map.TILE_WIDTH;
     //public static final float TILE_SCALE_HEIGHT = Map.BASE_TILE_SCALE * Map.TILE_HEIGHT;

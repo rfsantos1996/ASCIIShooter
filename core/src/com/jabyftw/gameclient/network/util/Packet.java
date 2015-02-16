@@ -7,11 +7,11 @@ import com.jabyftw.gameclient.network.PacketType;
 /**
  * Created by Rafael on 12/01/2015.
  */
-public class Packet implements Json.Serializable {
+public abstract class Packet implements Json.Serializable {
 
-    protected PacketType packetType;
+    private PacketType packetType;
 
-    public Packet(PacketType packetType) {
+    protected Packet(PacketType packetType) {
         this.packetType = packetType;
     }
 
@@ -21,11 +21,11 @@ public class Packet implements Json.Serializable {
 
     @Override
     public void write(Json json) {
-        json.writeValue("type", packetType.getId());
+        json.writeValue("deliverType", packetType.getId());
     }
 
     @Override
     public void read(Json json, JsonValue jsonData) {
-        packetType = PacketType.valueOf(jsonData.getInt("type"));
+        packetType = PacketType.valueOf(jsonData.getInt("deliverType"));
     }
 }

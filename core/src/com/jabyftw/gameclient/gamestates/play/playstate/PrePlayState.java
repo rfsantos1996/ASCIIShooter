@@ -59,7 +59,7 @@ public class PrePlayState extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(new PlayState(Resources.loadFinishedMap(availableMaps[selectedMap]), false));
+                    Main.setCurrentGameState(new PlayState(Resources.loadFinishedMap(availableMaps[selectedMap]), false));
                 }
             });
         }
@@ -71,7 +71,7 @@ public class PrePlayState extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(null);
+                    Main.setCurrentGameState(null);
                 }
             });
         }

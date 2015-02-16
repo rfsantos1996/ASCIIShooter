@@ -62,7 +62,7 @@ public class Animation implements Tickable {
         return timesPlayed;
     }
 
-    public void clearAnimation() {
+    void clearAnimation() {
         elapsedTime = 0;
         currentFrame = 0;
         timesPlayed = 0;

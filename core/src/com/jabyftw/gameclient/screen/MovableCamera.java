@@ -21,7 +21,7 @@ public class MovableCamera extends OrthographicCamera {
         setCameraBounds(minX, minY, maxX, maxY);
     }
 
-    public void setCameraBounds(float minX, float minY, float maxX, float maxY) {
+    void setCameraBounds(float minX, float minY, float maxX, float maxY) {
         this.min.set(minX, minY);
         this.max.set(maxX, maxY);
     }

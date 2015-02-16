@@ -7,7 +7,7 @@ import com.jabyftw.gameclient.gamestates.util.PseudoGameState;
 import com.jabyftw.gameclient.gamestates.util.TabledGameState;
 import com.jabyftw.gameclient.screen.Button;
 import com.jabyftw.gameclient.screen.ButtonTable;
-import com.jabyftw.gameclient.util.Util;
+import com.jabyftw.gameclient.util.Constants;
 import com.jabyftw.gameclient.util.files.Resources;
 import com.jabyftw.gameclient.util.files.enums.FontEnum;
 import com.jabyftw.gameclient.util.files.enums.LangEnum;
@@ -34,9 +34,7 @@ public class ConfigMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Resources.loadLanguage(Resources.Language.getFromOrdinal(
-                            Main.getOfflineProfile().getSelectedLanguage().ordinal() + (positiveAction ? 1 : -1)
-                    ));
+                    Resources.loadLanguage(Resources.Language.getFromOrdinal(Main.getOfflineProfile().getSelectedLanguage().ordinal() + (positiveAction ? 1 : -1)), false);
                 }
             });
         }
@@ -44,13 +42,13 @@ public class ConfigMenu extends TabledGameState implements PseudoGameState {
             buttonTable.addButton(new Button(Resources.getLang(LangEnum.SHADOW_OFFSET_BUTTON), true) {
                 @Override
                 public void update(float deltaTime, boolean isSelected) {
-                    setDisplayText(getText().replaceAll("%shadowoffset%", String.valueOf(Util.TEXT_SHADOW_OFFSET_SIZE)));
+                    setDisplayText(getText().replaceAll("%shadowoffset%", String.valueOf(Main.getOfflineProfile().getTextShadowOffset())));
                 }
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Util.TEXT_SHADOW_OFFSET_SIZE += (positiveAction ? 1 : -1);
-                    if(Util.TEXT_SHADOW_OFFSET_SIZE <= 0) Util.TEXT_SHADOW_OFFSET_SIZE = 0;
+                    int shadowOffset = Main.getOfflineProfile().getTextShadowOffset();
+                    Main.getOfflineProfile().setTextShadowOffset(shadowOffset + (positiveAction ? 1 : -1));
                 }
             });
         }
@@ -65,7 +63,7 @@ public class ConfigMenu extends TabledGameState implements PseudoGameState {
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
                     if(Gdx.graphics.isFullscreen())
-                        Gdx.graphics.setDisplayMode(Main.V_WIDTH, Main.V_HEIGHT, false);
+                        Gdx.graphics.setDisplayMode(Constants.Display.V_WIDTH, Constants.Display.V_HEIGHT, false);
                     else
                         Gdx.graphics.setDisplayMode(Gdx.graphics.getDesktopDisplayMode().width, Gdx.graphics.getDesktopDisplayMode().height, true);
                 }
@@ -77,7 +75,7 @@ public class ConfigMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Gdx.graphics.setDisplayMode(Main.V_WIDTH, Main.V_HEIGHT, Gdx.graphics.isFullscreen());
+                    Gdx.graphics.setDisplayMode(Constants.Display.V_WIDTH, Constants.Display.V_HEIGHT, Gdx.graphics.isFullscreen());
                 }
             });
         }
@@ -89,7 +87,7 @@ public class ConfigMenu extends TabledGameState implements PseudoGameState {
 
                 @Override
                 public void doButtonAction(boolean positiveAction, int timesPressed) {
-                    Main.getInstance().setCurrentGameState(null);
+                    Main.setCurrentGameState(null);
                 }
             });
         }

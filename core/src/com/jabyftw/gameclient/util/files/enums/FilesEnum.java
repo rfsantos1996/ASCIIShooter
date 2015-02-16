@@ -7,7 +7,8 @@ import com.badlogic.gdx.Files;
  */
 public enum FilesEnum {
 
-    PLAYER_PROFILE_FILE(Files.FileType.Local, "playerProfile.prof"),
+    PLAYER_PROFILE_FILE(Files.FileType.Local, "player.profile"),
+    SERVER_PROPERTIES_DIRECTORY(Files.FileType.Local, "server.properties"),
     LOCAL_MAP_DIRECTORY(Files.FileType.Local, "maps/", true),
     LANGUAGE_DIRECTORY(Files.FileType.Local, "lang/", true);
 

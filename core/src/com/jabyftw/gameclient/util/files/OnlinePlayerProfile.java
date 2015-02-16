@@ -3,27 +3,23 @@ package com.jabyftw.gameclient.util.files;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonValue;
 import com.jabyftw.gameclient.entity.weapon.Layout;
+import com.jabyftw.gameclient.util.Constants;
 
 /**
  * Created by Rafael on 12/01/2015.
  */
 public class OnlinePlayerProfile implements Json.Serializable {
 
-    public static final float PROFILE_VERSION = 0.1f; // Used server-wide for saving and stuff
-    public static final int MAXIMUM_LEVEL = 15;
-
     // Version 1.0
-    private int level;
-    private float exp;
-    private Layout[] layouts;
+    private final Layout[] layouts;
+    private String playerName;
+    private int level = Constants.Gameplay.Player.DEFAULT_PROFILE_LEVEL;
+    private float exp = 0;
 
     public OnlinePlayerProfile() {
-        this.level = 15;
-
-        this.layouts = new Layout[5];
+        this.layouts = new Layout[Constants.Gameplay.Player.NUMBER_OF_LAYOUTS];
         for(int i = 0; i < layouts.length; i++) {
-            layouts[i] = new Layout("Layout " + (i + 1));
-            layouts[i].validate(this);
+            (layouts[i] = new Layout(i)).validate(this);
         }
     }
 
@@ -31,12 +27,20 @@ public class OnlinePlayerProfile implements Json.Serializable {
      * GETTERS AND SETTERS
      */
 
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
     public int getLevel() {
         return level;
     }
 
     public void setLevel(int level) {
-        this.level = Math.min(level, MAXIMUM_LEVEL);
+        this.level = Math.min(level, Constants.Gameplay.Player.MAXIMUM_PROFILE_LEVEL);
     }
 
     public float getExp() {
@@ -57,8 +61,10 @@ public class OnlinePlayerProfile implements Json.Serializable {
 
     @Override
     public void write(Json json) {
-        json.writeValue("profileVersion", PROFILE_VERSION, Float.class);
+        json.writeValue("profileVersion", Constants.ONLINE_PROFILE_VERSION, Float.class);
         {
+            // Version 1.0
+            json.writeValue("playerName", playerName, String.class);
             json.writeValue("level", level, Float.class);
             json.writeValue("exp", exp, Float.class);
             json.writeArrayStart("layouts");
@@ -67,7 +73,7 @@ public class OnlinePlayerProfile implements Json.Serializable {
             }
             json.writeArrayEnd();
         }
-        System.out.println("OnlinePlayerProfile.write = { level: " + level + " exp: " + exp + " }");
+        //System.out.println("OnlinePlayerProfile.write = { level: " + level + " exp: " + exp + " }");
     }
 
     @Override
@@ -75,6 +81,7 @@ public class OnlinePlayerProfile implements Json.Serializable {
         float profileVersion = jsonData.getFloat("profileVersion");
         {
             // Version 1.0
+            this.playerName = jsonData.getString("playerName");
             this.level = jsonData.getInt("level");
             this.exp = jsonData.getFloat("exp");
             {
@@ -90,6 +97,6 @@ public class OnlinePlayerProfile implements Json.Serializable {
                 }
             }
         }
-        System.out.println("OnlinePlayerProfile.read = { level: " + level + " exp: " + exp + " }");
+        System.out.println("OnlinePlayerProfile.read = { playerName: " + playerName + " level: " + level + " exp: " + exp + " }");
     }
 }

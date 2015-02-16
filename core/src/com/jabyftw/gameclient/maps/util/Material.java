@@ -75,10 +75,6 @@ public enum Material {
         }
     }
 
-    public boolean acceptsBackground() {
-        return false;
-    }
-
     public boolean appearOnMapEditor() {
         return this != OPEN_DOOR;
     }

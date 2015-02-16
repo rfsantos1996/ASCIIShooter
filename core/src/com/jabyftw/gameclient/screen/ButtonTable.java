@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.jabyftw.gameclient.Main;
-import com.jabyftw.gameclient.util.Drawable;
+import com.jabyftw.gameclient.util.HudDrawable;
 import com.jabyftw.gameclient.util.Tickable;
 import com.jabyftw.gameclient.util.files.Resources;
 import com.jabyftw.gameclient.util.files.enums.FontEnum;
@@ -17,7 +17,7 @@ import com.jabyftw.gameclient.util.files.enums.FontEnum;
 /**
  * Created by Rafael on 07/12/2014.
  */
-public class ButtonTable implements Drawable, Tickable, Disposable {
+public class ButtonTable implements HudDrawable, Tickable, Disposable {
 
     private final Array<Button> buttons = new Array<Button>();
     private final BitmapFont font;
@@ -29,7 +29,7 @@ public class ButtonTable implements Drawable, Tickable, Disposable {
         this(font, baseColor, selectedColor, 0, 0);
     }
 
-    public ButtonTable(FontEnum font, Color baseColor, Color selectedColor, float offsetX, float offsetY) {
+    private ButtonTable(FontEnum font, Color baseColor, Color selectedColor, float offsetX, float offsetY) {
         this.font = Resources.getBitmapFont(font);
         this.baseColor = baseColor;
         this.selectedColor = selectedColor;
@@ -45,11 +45,11 @@ public class ButtonTable implements Drawable, Tickable, Disposable {
     }
 
     @Override
-    public void draw(SpriteBatch batch) {
+    public void drawHUD(SpriteBatch batch) {
         for(int i = 0; i < buttons.size; i++) {
             buttons.get(i).setColor(buttonIndex == i ? selectedColor : baseColor);
             buttons.get(i).setLocation(offsetX, getYForButton(i) + offsetY);
-            buttons.get(i).draw(batch);
+            buttons.get(i).drawHUD(batch);
         }
     }
 
@@ -78,7 +78,7 @@ public class ButtonTable implements Drawable, Tickable, Disposable {
             button.setFont(font);
     }
 
-    public Button getSelectedButton() {
+    Button getSelectedButton() {
         return buttons.get(buttonIndex);
     }
 
@@ -91,12 +91,12 @@ public class ButtonTable implements Drawable, Tickable, Disposable {
         checkButtonIndex();
     }
 
-    public void addButtonIndex() {
+    void addButtonIndex() {
         this.buttonIndex++;
         checkButtonIndex();
     }
 
-    public void subtractButtonIndex() {
+    void subtractButtonIndex() {
         this.buttonIndex--;
         checkButtonIndex();
     }
@@ -193,7 +193,7 @@ public class ButtonTable implements Drawable, Tickable, Disposable {
                 return true;
             }
             if(keycode == Input.Keys.ESCAPE && includeEscape) {
-                Main.getInstance().setCurrentGameState(null);
+                Main.setCurrentGameState(null);
                 return true;
             }
             return super.keyDown(keycode);

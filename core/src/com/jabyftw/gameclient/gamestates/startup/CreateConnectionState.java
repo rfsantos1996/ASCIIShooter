@@ -9,14 +9,15 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.jabyftw.gameclient.Main;
 import com.jabyftw.gameclient.gamestates.StartMenu;
 import com.jabyftw.gameclient.gamestates.util.AbstractGameState;
-import com.jabyftw.gameclient.gamestates.util.GameState;
 import com.jabyftw.gameclient.network.ClientPacketHandler;
-import com.jabyftw.gameclient.network.packets.client.PacketPingRequest;
+import com.jabyftw.gameclient.network.packets.PacketKillConnection;
+import com.jabyftw.gameclient.util.Constants;
 import com.jabyftw.gameclient.util.Util;
+import com.jabyftw.gameclient.util.files.OnlinePlayerProfile;
 import com.jabyftw.gameclient.util.files.Resources;
-import com.jabyftw.gameclient.util.files.enums.FilesEnum;
 import com.jabyftw.gameclient.util.files.enums.FontEnum;
 import com.jabyftw.gameclient.util.files.enums.LangEnum;
+import com.sun.istack.internal.NotNull;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,8 +27,6 @@ import java.util.concurrent.ThreadFactory;
  * Created by Rafael on 12/01/2015.
  */
 public class CreateConnectionState extends AbstractGameState {
-
-    private static final float TIME_NEEDED_TO_CHANGE_SCREEN = 1.2f;
 
     private LangEnum connectionState = LangEnum.CONNECTING;
     private ClientPacketHandler packetHandler;
@@ -42,8 +41,8 @@ public class CreateConnectionState extends AbstractGameState {
             int i = 1;
 
             @Override
-            public Thread newThread(Runnable r) {
-                return new Thread(r, "Connection thread #" + i++);
+            public Thread newThread(@NotNull Runnable runnable) {
+                return new Thread(runnable, "Connection thread #" + i++);
             }
         });
         desktopProcessor = new InputAdapter() {
@@ -58,6 +57,12 @@ public class CreateConnectionState extends AbstractGameState {
                     Gdx.app.exit();
                     return true;
                 }
+                if(Input.Keys.T == keycode && Constants.isTestBuild) {
+                    Main.setOnlineProfile(new OnlinePlayerProfile());
+                    Main.setPacketHandler(null);
+                    Main.setCurrentGameState(new StartMenu());
+                    return true;
+                }
                 return super.keyDown(keycode);
             }
         };
@@ -70,18 +75,17 @@ public class CreateConnectionState extends AbstractGameState {
             threadPool.submit(new TryConnectionRunnable());
         }
 
-        connectedTimeToChangeScreen += deltaTime;
+
         if(packetHandler != null && packetHandler.getConnection().isConnected()) {
-            if(connectedTimeToChangeScreen > TIME_NEEDED_TO_CHANGE_SCREEN) {
-                System.out.println("Address: " + packetHandler.getConnection().getRemoteAddress() + " alive? " + packetHandler.getConnection().isConnected());
+            connectedTimeToChangeScreen += deltaTime;
+
+            if(connectedTimeToChangeScreen > Constants.Display.WAIT_TIME_AFTER_RESPONSE) {
+                System.out.println("CreateConnectionState.update { \"Created connection to " + packetHandler.getConnection().getRemoteAddress() + ".\" }");
 
                 new Thread(packetHandler, "Connection thread").start();
-                Main.getInstance().setPacketHandler(packetHandler);
 
-                GameState startingGameState = Resources.getFileHandle(FilesEnum.PLAYER_PROFILE_FILE).exists() ? new StartMenu() : new CreateProfileState();
-                Main.getInstance().setCurrentGameState(startingGameState);
-
-                packetHandler.sendPacket(new PacketPingRequest());
+                Main.setPacketHandler(packetHandler);
+                Main.setCurrentGameState(new LoginProfileState());
             } else {
                 connectionState = LangEnum.CONNECTED;
             }
@@ -89,38 +93,45 @@ public class CreateConnectionState extends AbstractGameState {
     }
 
     @Override
-    public void draw(SpriteBatch batch) {
-        batch.setProjectionMatrix(Main.getInstance().getHudCamera().combined);
+    public void drawGame(SpriteBatch batch) {
+    }
+
+    @Override
+    public void drawHUD(SpriteBatch batch) {
+        BitmapFont font = Resources.getBitmapFont(FontEnum.PRESS_START_28);
+
         {
-            BitmapFont font = Resources.getBitmapFont(FontEnum.PRESS_START_28);
-            {
-                String text = Resources.getLang(connectionState);
+            String text = Resources.getLang(connectionState);
+
+            Util.drawText(
+                    font,
+                    batch,
+                    text,
+                    Constants.Display.V_WIDTH / 2f - ((text.length() / 2f) * font.getSpaceWidth()),
+                    Constants.Display.V_HEIGHT / 2f + (font.getLineHeight() / 2f)
+            );
+
+            if(connectionState == LangEnum.CONNECTION_FAILED) {
+                font = Resources.getBitmapFont(FontEnum.PRESS_START_14);
+                text = Resources.getLang(LangEnum.PRESS_ENTER_TO_RECONNECT);
+
                 Util.drawText(
                         font,
                         batch,
                         text,
-                        Main.V_WIDTH / 2f - ((text.length() / 2f) * font.getSpaceWidth()),
-                        Main.V_HEIGHT / 2f + (font.getLineHeight() / 2f)
+                        Constants.Display.V_WIDTH / 2f - ((text.length() / 2f) * font.getSpaceWidth()),
+                        Constants.Display.V_HEIGHT / 3f + (font.getLineHeight() / 2f)
                 );
-                if(connectionState == LangEnum.CONNECTION_FAILED) {
-                    font = Resources.getBitmapFont(FontEnum.PRESS_START_14);
-                    text = Resources.getLang(LangEnum.PRESS_ENTER_TO_RECONNECT);
-                    Util.drawText(
-                            font,
-                            batch,
-                            text,
-                            Main.V_WIDTH / 2f - ((text.length() / 2f) * font.getSpaceWidth()),
-                            Main.V_HEIGHT / 3f + (font.getLineHeight() / 2f)
-                    );
-                    text = Resources.getLang(LangEnum.PRESS_ESCAPE_TO_LEAVE);
-                    Util.drawText(
-                            font,
-                            batch,
-                            text,
-                            Main.V_WIDTH / 2f - ((text.length() / 2f) * font.getSpaceWidth()),
-                            Main.V_HEIGHT / 3f - (font.getLineHeight())
-                    );
-                }
+
+                text = Resources.getLang(LangEnum.PRESS_ESCAPE_TO_LEAVE);
+
+                Util.drawText(
+                        font,
+                        batch,
+                        text,
+                        Constants.Display.V_WIDTH / 2f - ((text.length() / 2f) * font.getSpaceWidth()),
+                        Constants.Display.V_HEIGHT / 3f - (font.getLineHeight())
+                );
             }
         }
     }
@@ -143,11 +154,12 @@ public class CreateConnectionState extends AbstractGameState {
                 packetHandler = new ClientPacketHandler();
 
                 if(packetHandler.getConnection() == null || !packetHandler.getConnection().isConnected()) {
-                    packetHandler.dispose();
+                    packetHandler.closeThread(PacketKillConnection.Reason.CLIENT_LOST_CONNECTION);
                     packetHandler = null; // Connection is invalid anyway
                 }
             } catch(GdxRuntimeException e) {
-                System.out.println("Couldn't connect: " + e.getMessage());
+                //e.printStackTrace();
+                System.out.println("TryConnectionRunnable.run { \"" + e.getMessage() + "\" }");
             }
             connectionState = LangEnum.CONNECTION_FAILED;
         }

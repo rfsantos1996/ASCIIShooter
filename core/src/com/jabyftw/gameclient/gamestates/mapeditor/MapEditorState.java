@@ -16,6 +16,7 @@ import com.jabyftw.gameclient.maps.Map;
 import com.jabyftw.gameclient.maps.util.Material;
 import com.jabyftw.gameclient.screen.Animation;
 import com.jabyftw.gameclient.screen.MovableCamera;
+import com.jabyftw.gameclient.util.Constants;
 
 /**
  * Created by Isa on 01/01/2015.
@@ -25,11 +26,9 @@ public class MapEditorState extends AbstractGameState {
     private static final float CAMERA_SPEED = 3.25f, RUNNING_SPEED = 4.5f;
 
     private final MovableCamera gameCamera = Main.getInstance().getGameCamera();
-    //private final Viewport gameViewport = Main.getInstance().getGameViewport();
+    private final Map map;
 
     private long tickCreated;
-
-    private Map map;
     private Vector2 selectedLocation = null;
 
     private Material selectedMaterial;
@@ -37,6 +36,7 @@ public class MapEditorState extends AbstractGameState {
 
     public MapEditorState(Map map) {
         this.map = map;
+        this.map.setViewer(Map.DEFAULT_MAP_VIEWER);
         this.map.clearWorld();
         this.map.setUseLightning(false);
     }
@@ -54,7 +54,8 @@ public class MapEditorState extends AbstractGameState {
             @Override
             public boolean keyDown(int keycode) {
                 if(Input.Keys.ESCAPE == keycode) {
-                    Main.getInstance().setCurrentGameState(new MapEditorMenu(mapEditorState));
+                    selectedLocation = null;
+                    Main.setCurrentGameState(new MapEditorMenu(mapEditorState));
                     return true;
                 }
                 return super.keyDown(keycode);
@@ -93,7 +94,7 @@ public class MapEditorState extends AbstractGameState {
             gameCamera.updatePosition(location, false);
         }
 
-        if(Main.getTicksPassed() - tickCreated >= (0.75f / Main.STEP)) {
+        if(Main.getTicksPassed() - tickCreated >= (0.75f / Constants.Gameplay.STEP)) {
             // Update mouse clicks
             boolean leftPressed = Gdx.input.isButtonPressed(Input.Buttons.LEFT),
                     rightPressed = Gdx.input.isButtonPressed(Input.Buttons.RIGHT),
@@ -122,13 +123,13 @@ public class MapEditorState extends AbstractGameState {
     }
 
     @Override
-    public void draw(SpriteBatch batch) {
+    public void drawGame(SpriteBatch batch) {
         batch.setProjectionMatrix(Main.getInstance().getGameCamera().combined);
         {
             // Draw game
-            map.draw(batch);
+            map.drawGame(batch);
             if(selectedLocation != null && map.isLocationValid(selectedLocation)) {
-                Vector2 screenCoordinates = Converter.BOX2D_COORDINATES.toScreenCoordinates(new Vector2(MathUtils.floorPositive(selectedLocation.x), MathUtils.floorPositive(selectedLocation.y)));
+                Vector2 screenCoordinates = Converter.WORLD_COORDINATES.toScreenCoordinates(new Vector2(MathUtils.floorPositive(selectedLocation.x), MathUtils.floorPositive(selectedLocation.y)));
                 // Draw background (not to show the block)
                 ShapeRenderer shapeRenderer = Map.shapeRenderer;
                 shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -139,10 +140,10 @@ public class MapEditorState extends AbstractGameState {
                         screenCoordinates.y,
                         0,
                         0,
-                        Map.TILE_WIDTH,
-                        Map.TILE_HEIGHT,
-                        Map.BASE_TILE_SCALE,
-                        Map.BASE_TILE_SCALE,
+                        Constants.Display.TILE_WIDTH,
+                        Constants.Display.TILE_HEIGHT,
+                        Constants.Display.BASE_TILE_SCALE,
+                        Constants.Display.BASE_TILE_SCALE,
                         0
                 );
                 shapeRenderer.end();
@@ -155,15 +156,19 @@ public class MapEditorState extends AbstractGameState {
                         screenCoordinates.y,
                         0,
                         0,
-                        Map.TILE_WIDTH,
-                        Map.TILE_HEIGHT,
-                        Map.BASE_TILE_SCALE,
-                        Map.BASE_TILE_SCALE,
+                        Constants.Display.TILE_WIDTH,
+                        Constants.Display.TILE_HEIGHT,
+                        Constants.Display.BASE_TILE_SCALE,
+                        Constants.Display.BASE_TILE_SCALE,
                         0
                 );
                 batch.end();
             }
         }
+    }
+
+    @Override
+    public void drawHUD(SpriteBatch batch) {
     }
 
     @Override
